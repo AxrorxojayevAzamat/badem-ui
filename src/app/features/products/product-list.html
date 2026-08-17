@@ -1,0 +1,84 @@
+<div class="page">
+  <div class="page-head">
+    <div>
+      <h1>Products</h1>
+      <p class="subtitle">Produced batches and the stock each one consumed.</p>
+    </div>
+    <a class="btn" routerLink="/products/new">Record production</a>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="toolbar">
+        <input type="search" placeholder="Search name or SKU…" (input)="onSearch($event)" />
+        <select (change)="onClient($event)">
+          <option value="">All clients</option>
+          @for (client of clients(); track client.id) {
+            <option [value]="client.id">{{ client.name }}</option>
+          }
+        </select>
+        <select (change)="onSource($event)">
+          <option value="">All sources</option>
+          @for (source of sources(); track source.id) {
+            <option [value]="source.id">{{ source.name }}</option>
+          }
+        </select>
+      </div>
+      @if (res.isLoading()) {
+        <span class="muted">Loading…</span>
+      }
+    </div>
+
+    @if (res.error()) {
+      <div class="alert error">Could not load products.</div>
+    } @else if (rows().length === 0) {
+      <p class="empty">No products yet.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>SKU</th>
+              <th>Client</th>
+              <th>Source</th>
+              <th class="right">Units</th>
+              <th class="right">Stock used</th>
+              <th class="right">Price</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (product of rows(); track product.id) {
+              <tr>
+                <td><strong>{{ product.name }}</strong></td>
+                <td class="muted">{{ product.sku ?? '—' }}</td>
+                <td class="muted">{{ product.client?.name ?? '—' }}</td>
+                <td class="muted">
+                  <a [routerLink]="['/sources', product.sourceId]">{{ product.source?.name }}</a>
+                </td>
+                <td class="right">{{ product.quantity | number: '1.0-3' }}</td>
+                <td class="right">
+                  <span class="badge red">
+                    −{{ product.totalSourceUsed | number: '1.0-3' }} {{ product.source?.unit }}
+                  </span>
+                </td>
+                <td class="right muted">{{ product.price | number: '1.0-2' }}</td>
+                <td class="actions">
+                  <a class="btn ghost small" [routerLink]="['/products', product.id]">Edit</a>
+                  @if (auth.can('ADMIN', 'MANAGER')) {
+                    <button type="button" class="btn danger small" (click)="remove(product)">
+                      Delete
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <paginator [result]="res.value()" (pageChange)="page.set($event)" />
+    }
+  </div>
+</div>

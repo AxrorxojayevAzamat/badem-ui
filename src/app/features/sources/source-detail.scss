@@ -1,0 +1,40 @@
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  align-items: flex-start;
+}
+
+.stat .label {
+  font-size: 0.75rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.stat strong {
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
+}
+
+.stat.warn strong {
+  color: var(--danger);
+}
+
+.up {
+  color: var(--primary);
+}
+
+.down {
+  color: var(--danger);
+}
+
+form.card .field + .field {
+  margin-top: 0.85rem;
+}
+
+form.card > .muted {
+  margin: -0.5rem 0 1rem;
+  font-size: 0.875rem;
+}

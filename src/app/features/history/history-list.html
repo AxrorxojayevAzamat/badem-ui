@@ -1,0 +1,82 @@
+<div class="page">
+  <div class="page-head">
+    <div>
+      <h1>Stock history</h1>
+      <p class="subtitle">
+        Every movement of every source — written automatically by production,
+        restock and corrections.
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="toolbar">
+        <select (change)="setFilter('sourceId', $event)">
+          <option value="">All sources</option>
+          @for (source of sources(); track source.id) {
+            <option [value]="source.id">{{ source.name }}</option>
+          }
+        </select>
+        <select (change)="setFilter('action', $event)">
+          <option value="">All actions</option>
+          @for (action of actions; track action) {
+            <option [value]="action">{{ action }}</option>
+          }
+        </select>
+        <input type="date" (change)="setFilter('from', $event)" title="From" />
+        <input type="date" (change)="setFilter('to', $event)" title="To" />
+      </div>
+      @if (res.isLoading()) {
+        <span class="muted">Loading…</span>
+      }
+    </div>
+
+    @if (res.error()) {
+      <div class="alert error">Could not load the stock history.</div>
+    } @else if (rows().length === 0) {
+      <p class="empty">No movements match these filters.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>When</th>
+              <th>Source</th>
+              <th>Action</th>
+              <th class="right">Before</th>
+              <th class="right">Change</th>
+              <th class="right">After</th>
+              <th>Product</th>
+              <th>By</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of rows(); track entry.id) {
+              <tr>
+                <td class="muted">{{ entry.createdAt | date: 'dd MMM yyyy, HH:mm' }}</td>
+                <td>
+                  <a [routerLink]="['/sources', entry.sourceId]">
+                    {{ entry.source?.name ?? '—' }}
+                  </a>
+                </td>
+                <td><span class="badge" [class]="badgeClass(entry.action)">{{ entry.action }}</span></td>
+                <td class="right muted">{{ entry.quantityBefore | number: '1.0-3' }}</td>
+                <td class="right">
+                  <strong>
+                    {{ entry.quantityChange > 0 ? '+' : '' }}{{ entry.quantityChange | number: '1.0-3' }}
+                  </strong>
+                </td>
+                <td class="right">{{ entry.quantityAfter | number: '1.0-3' }}</td>
+                <td class="muted">{{ entry.product?.name ?? entry.note ?? '—' }}</td>
+                <td class="muted">{{ entry.user?.fullName ?? '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <paginator [result]="res.value()" (pageChange)="page.set($event)" />
+    }
+  </div>
+</div>

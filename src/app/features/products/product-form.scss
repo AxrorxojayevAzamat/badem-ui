@@ -1,0 +1,38 @@
+.impact {
+  margin-top: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius);
+  background: var(--primary-soft);
+  border: 1px solid transparent;
+}
+
+.impact.over {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+
+.impact > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.impact .label {
+  font-size: 0.75rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.impact strong {
+  font-size: 1.05rem;
+}
+
+.impact .op {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+}

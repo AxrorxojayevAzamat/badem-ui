@@ -1,0 +1,33 @@
+.toasts {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 50;
+  max-width: min(28rem, calc(100vw - 2.5rem));
+}
+
+.toast {
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  font-size: 0.9375rem;
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.toast.success {
+  background: var(--primary);
+  border-color: transparent;
+  color: #fff;
+}
+
+.toast.error {
+  background: var(--danger);
+  border-color: transparent;
+  color: #fff;
+}

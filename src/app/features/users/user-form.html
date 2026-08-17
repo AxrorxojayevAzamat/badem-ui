@@ -1,0 +1,62 @@
+<div class="page">
+  <div class="page-head">
+    <div>
+      <h1>New user</h1>
+      <p class="subtitle">Creates a login account with the role you pick.</p>
+    </div>
+  </div>
+
+  <form class="card" [formRoot]="userForm">
+    <form-error [form]="userForm" />
+
+    <div class="form-grid">
+      <div class="field">
+        <label for="fullName">Full name</label>
+        <input id="fullName" [formField]="userForm.fullName" />
+        <field-errors [field]="userForm.fullName" />
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="off" [formField]="userForm.email" />
+        <field-errors [field]="userForm.email" />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          autocomplete="new-password"
+          [formField]="userForm.password"
+        />
+        <field-errors [field]="userForm.password" />
+      </div>
+
+      <div class="field">
+        <label for="role">Role</label>
+        <select id="role" [formField]="userForm.role">
+          @for (role of roles; track role) {
+            <option [value]="role">{{ role }}</option>
+          }
+        </select>
+        <field-errors [field]="userForm.role" />
+      </div>
+
+      <div class="field">
+        <label for="isActive">Status</label>
+        <label class="checkbox">
+          <input id="isActive" type="checkbox" [formField]="userForm.isActive" />
+          <span>Account enabled</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn" [disabled]="userForm().submitting()">
+        {{ userForm().submitting() ? 'Creating…' : 'Create user' }}
+      </button>
+      <button type="button" class="btn ghost" (click)="cancel()">Cancel</button>
+    </div>
+  </form>
+</div>

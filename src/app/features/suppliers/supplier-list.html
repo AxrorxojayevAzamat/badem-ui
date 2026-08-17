@@ -1,0 +1,76 @@
+<div class="page">
+  <div class="page-head">
+    <div>
+      <h1>Suppliers</h1>
+      <p class="subtitle">Where every raw material is bought from.</p>
+    </div>
+    @if (auth.can('ADMIN', 'MANAGER')) {
+      <a class="btn" routerLink="/suppliers/new">New supplier</a>
+    }
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="toolbar">
+        <input
+          type="search"
+          placeholder="Search name, phone or email…"
+          (input)="onSearch($event)"
+        />
+      </div>
+      @if (res.isLoading()) {
+        <span class="muted">Loading…</span>
+      }
+    </div>
+
+    @if (res.error()) {
+      <div class="alert error">Could not load suppliers.</div>
+    } @else if (rows().length === 0) {
+      <p class="empty">No suppliers found.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Tax number</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (supplier of rows(); track supplier.id) {
+              <tr>
+                <td><strong>{{ supplier.name }}</strong></td>
+                <td class="muted">{{ supplier.phone ?? '—' }}</td>
+                <td class="muted">{{ supplier.email ?? '—' }}</td>
+                <td class="muted">{{ supplier.taxNumber ?? '—' }}</td>
+                <td>
+                  <span class="badge" [class.green]="supplier.isActive">
+                    {{ supplier.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="actions">
+                  @if (auth.can('ADMIN', 'MANAGER')) {
+                    <a class="btn ghost small" [routerLink]="['/suppliers', supplier.id]">
+                      Edit
+                    </a>
+                  }
+                  @if (auth.can('ADMIN')) {
+                    <button type="button" class="btn danger small" (click)="remove(supplier)">
+                      Delete
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <paginator [result]="res.value()" (pageChange)="page.set($event)" />
+    }
+  </div>
+</div>

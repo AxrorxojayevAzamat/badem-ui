@@ -1,0 +1,132 @@
+<div class="page">
+  <div class="page-head">
+    <div>
+      <h1>Hello, {{ auth.user()?.fullName }}</h1>
+      <p class="subtitle">Stock, production and what moved recently.</p>
+    </div>
+    <a class="btn" routerLink="/products/new">Record production</a>
+  </div>
+
+  <div class="grid cols-4">
+    <div class="card stat">
+      <span class="label">Sources</span>
+      <strong>{{ sourceCount() }}</strong>
+      <span class="muted">raw materials tracked</span>
+    </div>
+    <div class="card stat">
+      <span class="label">Products</span>
+      <strong>{{ productCount() }}</strong>
+      <span class="muted">produced batches</span>
+    </div>
+    <div class="card stat">
+      <span class="label">Stock value</span>
+      <strong>{{ stockValue() | number: '1.0-0' }}</strong>
+      <span class="muted">quantity × price per unit</span>
+    </div>
+    <div class="card stat" [class.warn]="lowStock().length > 0">
+      <span class="label">Low stock</span>
+      <strong>{{ lowStock().length }}</strong>
+      <span class="muted">at or below minimum</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h2>Low stock sources</h2>
+      <a routerLink="/sources">All sources</a>
+    </div>
+    @if (lowStock().length === 0) {
+      <p class="empty">Every source is above its minimum level.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Supplier</th>
+              <th class="right">In stock</th>
+              <th class="right">Minimum</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (source of lowStock(); track source.id) {
+              <tr>
+                <td><a [routerLink]="['/sources', source.id]">{{ source.name }}</a></td>
+                <td class="muted">{{ source.supplier?.name }}</td>
+                <td class="right">
+                  <span class="badge red">
+                    {{ source.quantity | number: '1.0-3' }} {{ source.unit }}
+                  </span>
+                </td>
+                <td class="right muted">
+                  {{ source.minQuantity | number: '1.0-3' }} {{ source.unit }}
+                </td>
+                <td class="right">
+                  <a class="btn ghost small" [routerLink]="['/sources', source.id]">
+                    Restock
+                  </a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <div class="grid cols-2">
+    <div class="card">
+      <div class="card-head">
+        <h2>Latest products</h2>
+        <a routerLink="/products">All products</a>
+      </div>
+      @if (recentProducts().length === 0) {
+        <p class="empty">No products yet.</p>
+      } @else {
+        <ul class="feed">
+          @for (product of recentProducts(); track product.id) {
+            <li>
+              <div>
+                <strong>{{ product.name }}</strong>
+                <span class="muted"> for {{ product.client?.name }}</span>
+              </div>
+              <span class="badge">
+                −{{ product.totalSourceUsed | number: '1.0-3' }}
+                {{ product.source?.unit }}
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Recent stock movements</h2>
+        <a routerLink="/history">Full ledger</a>
+      </div>
+      @if (recentMovements().length === 0) {
+        <p class="empty">No movements recorded yet.</p>
+      } @else {
+        <ul class="feed">
+          @for (entry of recentMovements(); track entry.id) {
+            <li>
+              <div>
+                <strong>{{ entry.source?.name }}</strong>
+                <span class="muted"> · {{ entry.action | lowercase }}</span>
+              </div>
+              <span
+                class="badge"
+                [class.green]="entry.quantityChange > 0"
+                [class.red]="entry.quantityChange < 0"
+              >
+                {{ entry.quantityChange > 0 ? '+' : '' }}{{ entry.quantityChange | number: '1.0-3' }}
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+</div>

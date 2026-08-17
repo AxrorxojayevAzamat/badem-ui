@@ -1,0 +1,9 @@
+<router-outlet />
+
+<div class="toasts">
+  @for (message of toast.messages(); track message.id) {
+    <div class="toast" [class]="message.tone" (click)="toast.dismiss(message.id)">
+      {{ message.text }}
+    </div>
+  }
+</div>

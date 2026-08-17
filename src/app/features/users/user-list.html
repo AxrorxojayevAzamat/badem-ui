@@ -1,0 +1,72 @@
+<div class="page">
+  <div class="page-head">
+    <div>
+      <h1>Users</h1>
+      <p class="subtitle">Login accounts and their roles.</p>
+    </div>
+    @if (auth.can('ADMIN')) {
+      <a class="btn" routerLink="/users/new">New user</a>
+    }
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="toolbar">
+        <input type="search" placeholder="Search name or email…" (input)="onSearch($event)" />
+      </div>
+      @if (res.isLoading()) {
+        <span class="muted">Loading…</span>
+      }
+    </div>
+
+    @if (res.error()) {
+      <div class="alert error">Could not load users.</div>
+    } @else if (rows().length === 0) {
+      <p class="empty">No users found.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Last login</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of rows(); track user.id) {
+              <tr>
+                <td><strong>{{ user.fullName }}</strong></td>
+                <td class="muted">{{ user.email }}</td>
+                <td><span class="badge">{{ user.role }}</span></td>
+                <td class="muted">
+                  {{ user.lastLoginAt ? (user.lastLoginAt | date: 'dd MMM yyyy, HH:mm') : 'never' }}
+                </td>
+                <td>
+                  <span class="badge" [class.green]="user.isActive" [class.red]="!user.isActive">
+                    {{ user.isActive ? 'Active' : 'Disabled' }}
+                  </span>
+                </td>
+                <td class="actions">
+                  @if (auth.can('ADMIN')) {
+                    <button type="button" class="btn ghost small" (click)="toggleActive(user)">
+                      {{ user.isActive ? 'Disable' : 'Enable' }}
+                    </button>
+                    <button type="button" class="btn danger small" (click)="remove(user)">
+                      Delete
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <paginator [result]="res.value()" (pageChange)="page.set($event)" />
+    }
+  </div>
+</div>

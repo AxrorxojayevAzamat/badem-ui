@@ -1,0 +1,44 @@
+<div class="login-page">
+  <form class="card login-card" [formRoot]="loginForm">
+    <div class="head">
+      <span class="mark">B</span>
+      <h1>Badem CRM</h1>
+      <p class="muted">Sign in to manage stock, products and clients.</p>
+    </div>
+
+    @if (serverError(); as message) {
+      <div class="alert error">{{ message }}</div>
+    }
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        autocomplete="username"
+        placeholder="admin@badem.local"
+        [formField]="loginForm.email"
+      />
+      <field-errors [field]="loginForm.email" />
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <input
+        id="password"
+        type="password"
+        autocomplete="current-password"
+        [formField]="loginForm.password"
+      />
+      <field-errors [field]="loginForm.password" />
+    </div>
+
+    <button type="submit" class="btn" [disabled]="loginForm().submitting()">
+      {{ loginForm().submitting() ? 'Signing in…' : 'Sign in' }}
+    </button>
+
+    <p class="hint muted">
+      Seeded account: <code>admin@badem.local</code> / <code>Admin123!</code>
+    </p>
+  </form>
+</div>

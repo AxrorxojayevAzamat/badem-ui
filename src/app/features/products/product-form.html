@@ -1,0 +1,113 @@
+<div class="page">
+  <div class="page-head">
+    <div>
+      <h1>{{ isEdit() ? 'Edit product' : 'Record production' }}</h1>
+      <p class="subtitle">
+        Saving consumes <strong>quantity × usage</strong> from the selected source
+        and writes it to the stock history.
+      </p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="card"><p class="empty">Loading product…</p></div>
+  } @else {
+    <form class="card" [formRoot]="productForm">
+      <form-error [form]="productForm" />
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="name">Product name</label>
+          <input id="name" [formField]="productForm.name" placeholder="Roasted almond 500g" />
+          <field-errors [field]="productForm.name" />
+        </div>
+
+        <div class="field">
+          <label for="sku">SKU</label>
+          <input id="sku" [formField]="productForm.sku" placeholder="ALM-500" />
+          @if (productForm.sku().pending()) {
+            <p class="hint">Checking availability…</p>
+          }
+          <field-errors [field]="productForm.sku" />
+        </div>
+
+        <div class="field">
+          <label for="clientId">Client</label>
+          <select id="clientId" [formField]="productForm.clientId">
+            <option value="">Select a client…</option>
+            @for (client of clients(); track client.id) {
+              <option [value]="client.id">{{ client.name }}</option>
+            }
+          </select>
+          <field-errors [field]="productForm.clientId" />
+        </div>
+
+        <div class="field">
+          <label for="sourceId">Source</label>
+          <select id="sourceId" [formField]="productForm.sourceId">
+            <option value="">Select a source…</option>
+            @for (source of sources(); track source.id) {
+              <option [value]="source.id">
+                {{ source.name }} ({{ source.quantity }} {{ source.unit }} in stock)
+              </option>
+            }
+          </select>
+          <field-errors [field]="productForm.sourceId" />
+        </div>
+
+        <div class="field">
+          <label for="quantity">Units produced</label>
+          <input id="quantity" type="number" step="0.001" [formField]="productForm.quantity" />
+          <field-errors [field]="productForm.quantity" />
+        </div>
+
+        <div class="field">
+          <label for="sourceUsage">Source used per unit</label>
+          <input id="sourceUsage" type="number" step="0.001" [formField]="productForm.sourceUsage" />
+          <p class="hint">
+            How much of the source one produced unit eats.
+          </p>
+          <field-errors [field]="productForm.sourceUsage" />
+        </div>
+
+        <div class="field">
+          <label for="price">Sale price per unit</label>
+          <input id="price" type="number" step="0.01" [formField]="productForm.price" />
+          <field-errors [field]="productForm.price" />
+        </div>
+
+        <div class="field full">
+          <label for="description">Description</label>
+          <input id="description" [formField]="productForm.description" />
+          <field-errors [field]="productForm.description" />
+        </div>
+      </div>
+
+      @if (selectedSource(); as source) {
+        <div class="impact" [class.over]="(remainingAfter() ?? 0) < 0">
+          <div>
+            <span class="label">Available now</span>
+            <strong>{{ availableStock() }} {{ source.unit }}</strong>
+          </div>
+          <span class="op">−</span>
+          <div>
+            <span class="label">This batch needs</span>
+            <strong>{{ totalNeeded() }} {{ source.unit }}</strong>
+          </div>
+          <span class="op">=</span>
+          <div>
+            <span class="label">Left after saving</span>
+            <strong>{{ remainingAfter() }} {{ source.unit }}</strong>
+          </div>
+        </div>
+      }
+
+      <div class="form-actions">
+        <button type="submit" class="btn" [disabled]="productForm().submitting()">
+          {{ productForm().submitting() ? 'Saving…' : isEdit() ? 'Save changes' : 'Record production' }}
+        </button>
+        <button type="button" class="btn ghost" (click)="cancel()">Cancel</button>
+      </div>
+    </form>
+  }
+</div>

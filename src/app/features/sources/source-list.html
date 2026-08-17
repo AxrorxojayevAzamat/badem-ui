@@ -1,0 +1,83 @@
+<div class="page">
+  <div class="page-head">
+    <div>
+      <h1>Sources</h1>
+      <p class="subtitle">Raw material stock, per supplier.</p>
+    </div>
+    @if (auth.can('ADMIN', 'MANAGER')) {
+      <a class="btn" routerLink="/sources/new">New source</a>
+    }
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="toolbar">
+        <input type="search" placeholder="Search source name…" (input)="onSearch($event)" />
+        <select (change)="onSupplier($event)">
+          <option value="">All suppliers</option>
+          @for (supplier of suppliers(); track supplier.id) {
+            <option [value]="supplier.id">{{ supplier.name }}</option>
+          }
+        </select>
+        <label class="checkbox">
+          <input type="checkbox" (change)="onLowStock($event)" />
+          <span>Low stock only</span>
+        </label>
+      </div>
+      @if (res.isLoading()) {
+        <span class="muted">Loading…</span>
+      }
+    </div>
+
+    @if (res.error()) {
+      <div class="alert error">Could not load sources.</div>
+    } @else if (rows().length === 0) {
+      <p class="empty">No sources found.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Supplier</th>
+              <th class="right">In stock</th>
+              <th class="right">Minimum</th>
+              <th class="right">Price / unit</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (source of rows(); track source.id) {
+              <tr>
+                <td>
+                  <a [routerLink]="['/sources', source.id]"><strong>{{ source.name }}</strong></a>
+                </td>
+                <td class="muted">{{ source.supplier?.name ?? '—' }}</td>
+                <td class="right">
+                  <span class="badge" [class.red]="isLow(source)" [class.green]="!isLow(source)">
+                    {{ source.quantity | number: '1.0-3' }} {{ source.unit }}
+                  </span>
+                </td>
+                <td class="right muted">{{ source.minQuantity | number: '1.0-3' }}</td>
+                <td class="right muted">{{ source.pricePerUnit | number: '1.0-2' }}</td>
+                <td class="actions">
+                  <a class="btn ghost small" [routerLink]="['/sources', source.id]">Stock</a>
+                  @if (auth.can('ADMIN', 'MANAGER')) {
+                    <a class="btn ghost small" [routerLink]="['/sources', source.id, 'edit']">Edit</a>
+                  }
+                  @if (auth.can('ADMIN')) {
+                    <button type="button" class="btn danger small" (click)="remove(source)">
+                      Delete
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <paginator [result]="res.value()" (pageChange)="page.set($event)" />
+    }
+  </div>
+</div>
