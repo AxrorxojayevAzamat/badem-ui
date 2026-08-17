@@ -1,20 +1,28 @@
-import { DecimalPipe, LowerCasePipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { httpResource } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { API_BASE } from '../../core/api';
 import { Auth } from '../../core/auth/auth';
-import { Paginated, Product, Source, SourceHistory } from '../../core/models';
+import { I18n } from '../../core/i18n/i18n';
+import {
+  Paginated,
+  Product,
+  Source,
+  SourceHistory,
+  SourceHistoryAction,
+} from '../../core/models';
 
 @Component({
   selector: 'app-dashboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, DecimalPipe, LowerCasePipe],
+  imports: [RouterLink, DecimalPipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
 export class Dashboard {
   protected readonly auth = inject(Auth);
+  protected readonly i18n = inject(I18n);
 
   // `httpResource` re-fetches whenever the request signal changes and exposes
   // loading/error state as signals — no subscriptions to manage.
@@ -59,4 +67,9 @@ export class Dashboard {
   protected readonly stockValue = computed(() =>
     this.sources().reduce((sum, s) => sum + s.quantity * s.pricePerUnit, 0),
   );
+
+  /** The template literal keeps this type-safe against the dictionary keys. */
+  protected actionLabel(action: SourceHistoryAction): string {
+    return this.i18n.t(`history.action.${action}`);
+  }
 }

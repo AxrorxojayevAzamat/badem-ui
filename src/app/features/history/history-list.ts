@@ -1,8 +1,9 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { httpResource } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { API_BASE } from '../../core/api';
+import { I18n } from '../../core/i18n/i18n';
 import {
   Paginated,
   Source,
@@ -25,6 +26,7 @@ const ACTIONS: readonly SourceHistoryAction[] = [
   templateUrl: './history-list.html',
 })
 export class HistoryList {
+  protected readonly i18n = inject(I18n);
   protected readonly actions = ACTIONS;
 
   protected readonly page = signal(1);
@@ -57,6 +59,10 @@ export class HistoryList {
     const value = (event.target as HTMLInputElement | HTMLSelectElement).value;
     this[target].set(value);
     this.page.set(1);
+  }
+
+  protected actionLabel(action: SourceHistoryAction): string {
+    return this.i18n.t(`history.action.${action}`);
   }
 
   protected badgeClass(action: SourceHistoryAction): string {

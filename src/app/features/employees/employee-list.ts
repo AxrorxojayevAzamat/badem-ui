@@ -4,6 +4,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { RouterLink } from '@angular/router';
 import { API_BASE, apiErrorMessage } from '../../core/api';
 import { Auth } from '../../core/auth/auth';
+import { I18n } from '../../core/i18n/i18n';
 import { Employee, Paginated } from '../../core/models';
 import { Employees } from '../../core/services/employees';
 import { Toast } from '../../core/toast';
@@ -19,6 +20,7 @@ export class EmployeeList {
   private readonly api = inject(Employees);
   private readonly toast = inject(Toast);
   protected readonly auth = inject(Auth);
+  protected readonly i18n = inject(I18n);
 
   protected readonly page = signal(1);
   protected readonly search = signal('');
@@ -40,13 +42,21 @@ export class EmployeeList {
   }
 
   protected async remove(employee: Employee) {
-    if (!confirm(`Delete employee "${employee.fullName}"?`)) return;
+    if (
+      !confirm(this.i18n.t('employees.confirmDelete', { name: employee.fullName }))
+    ) {
+      return;
+    }
     try {
       await this.api.remove(employee.id);
-      this.toast.success(`Employee "${employee.fullName}" deleted`);
+      this.toast.success(
+        this.i18n.t('employees.deleted', { name: employee.fullName }),
+      );
       this.res.reload();
     } catch (error) {
-      this.toast.error(apiErrorMessage(error, 'Could not delete employee'));
+      this.toast.error(
+        apiErrorMessage(error, this.i18n.t('employees.deleteFailed')),
+      );
     }
   }
 }

@@ -1,51 +1,51 @@
 <div class="page">
   <div class="page-head">
     <div>
-      <h1>Hello, {{ auth.user()?.fullName }}</h1>
-      <p class="subtitle">Stock, production and what moved recently.</p>
+      <h1>{{ i18n.t('dashboard.hello', { name: auth.user()?.fullName ?? '' }) }}</h1>
+      <p class="subtitle">{{ i18n.t('dashboard.subtitle') }}</p>
     </div>
-    <a class="btn" routerLink="/products/new">Record production</a>
+    <a class="btn" routerLink="/products/new">{{ i18n.t('dashboard.recordProduction') }}</a>
   </div>
 
   <div class="grid cols-4">
     <div class="card stat">
-      <span class="label">Sources</span>
+      <span class="label">{{ i18n.t('dashboard.statSources') }}</span>
       <strong>{{ sourceCount() }}</strong>
-      <span class="muted">raw materials tracked</span>
+      <span class="muted">{{ i18n.t('dashboard.statSourcesHint') }}</span>
     </div>
     <div class="card stat">
-      <span class="label">Products</span>
+      <span class="label">{{ i18n.t('dashboard.statProducts') }}</span>
       <strong>{{ productCount() }}</strong>
-      <span class="muted">produced batches</span>
+      <span class="muted">{{ i18n.t('dashboard.statProductsHint') }}</span>
     </div>
     <div class="card stat">
-      <span class="label">Stock value</span>
-      <strong>{{ stockValue() | number: '1.0-0' }}</strong>
-      <span class="muted">quantity × price per unit</span>
+      <span class="label">{{ i18n.t('dashboard.statValue') }}</span>
+      <strong>{{ stockValue() | number: '1.0-0' : i18n.locale() }}</strong>
+      <span class="muted">{{ i18n.t('dashboard.statValueHint') }}</span>
     </div>
     <div class="card stat" [class.warn]="lowStock().length > 0">
-      <span class="label">Low stock</span>
+      <span class="label">{{ i18n.t('dashboard.statLow') }}</span>
       <strong>{{ lowStock().length }}</strong>
-      <span class="muted">at or below minimum</span>
+      <span class="muted">{{ i18n.t('dashboard.statLowHint') }}</span>
     </div>
   </div>
 
   <div class="card">
     <div class="card-head">
-      <h2>Low stock sources</h2>
-      <a routerLink="/sources">All sources</a>
+      <h2>{{ i18n.t('dashboard.lowStockTitle') }}</h2>
+      <a routerLink="/sources">{{ i18n.t('dashboard.allSources') }}</a>
     </div>
     @if (lowStock().length === 0) {
-      <p class="empty">Every source is above its minimum level.</p>
+      <p class="empty">{{ i18n.t('dashboard.noLowStock') }}</p>
     } @else {
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Source</th>
-              <th>Supplier</th>
-              <th class="right">In stock</th>
-              <th class="right">Minimum</th>
+              <th>{{ i18n.t('sources.colSource') }}</th>
+              <th>{{ i18n.t('sources.colSupplier') }}</th>
+              <th class="right">{{ i18n.t('sources.colInStock') }}</th>
+              <th class="right">{{ i18n.t('sources.colMinimum') }}</th>
               <th></th>
             </tr>
           </thead>
@@ -56,15 +56,15 @@
                 <td class="muted">{{ source.supplier?.name }}</td>
                 <td class="right">
                   <span class="badge red">
-                    {{ source.quantity | number: '1.0-3' }} {{ source.unit }}
+                    {{ source.quantity | number: '1.0-3' : i18n.locale() }} {{ source.unit }}
                   </span>
                 </td>
                 <td class="right muted">
-                  {{ source.minQuantity | number: '1.0-3' }} {{ source.unit }}
+                  {{ source.minQuantity | number: '1.0-3' : i18n.locale() }} {{ source.unit }}
                 </td>
                 <td class="right">
                   <a class="btn ghost small" [routerLink]="['/sources', source.id]">
-                    Restock
+                    {{ i18n.t('sourceDetail.restock') }}
                   </a>
                 </td>
               </tr>
@@ -78,21 +78,23 @@
   <div class="grid cols-2">
     <div class="card">
       <div class="card-head">
-        <h2>Latest products</h2>
-        <a routerLink="/products">All products</a>
+        <h2>{{ i18n.t('dashboard.latestProducts') }}</h2>
+        <a routerLink="/products">{{ i18n.t('dashboard.allProducts') }}</a>
       </div>
       @if (recentProducts().length === 0) {
-        <p class="empty">No products yet.</p>
+        <p class="empty">{{ i18n.t('dashboard.noProducts') }}</p>
       } @else {
         <ul class="feed">
           @for (product of recentProducts(); track product.id) {
             <li>
               <div>
                 <strong>{{ product.name }}</strong>
-                <span class="muted"> for {{ product.client?.name }}</span>
+                <span class="muted">
+                  {{ i18n.t('dashboard.forClient', { client: product.client?.name ?? '' }) }}
+                </span>
               </div>
               <span class="badge">
-                −{{ product.totalSourceUsed | number: '1.0-3' }}
+                −{{ product.totalSourceUsed | number: '1.0-3' : i18n.locale() }}
                 {{ product.source?.unit }}
               </span>
             </li>
@@ -103,25 +105,26 @@
 
     <div class="card">
       <div class="card-head">
-        <h2>Recent stock movements</h2>
-        <a routerLink="/history">Full ledger</a>
+        <h2>{{ i18n.t('dashboard.recentMovements') }}</h2>
+        <a routerLink="/history">{{ i18n.t('dashboard.fullLedger') }}</a>
       </div>
       @if (recentMovements().length === 0) {
-        <p class="empty">No movements recorded yet.</p>
+        <p class="empty">{{ i18n.t('dashboard.noMovements') }}</p>
       } @else {
         <ul class="feed">
           @for (entry of recentMovements(); track entry.id) {
             <li>
               <div>
                 <strong>{{ entry.source?.name }}</strong>
-                <span class="muted"> · {{ entry.action | lowercase }}</span>
+                <span class="muted"> · {{ actionLabel(entry.action) }}</span>
               </div>
               <span
                 class="badge"
                 [class.green]="entry.quantityChange > 0"
                 [class.red]="entry.quantityChange < 0"
               >
-                {{ entry.quantityChange > 0 ? '+' : '' }}{{ entry.quantityChange | number: '1.0-3' }}
+                {{ entry.quantityChange > 0 ? '+' : ''
+                }}{{ entry.quantityChange | number: '1.0-3' : i18n.locale() }}
               </span>
             </li>
           }

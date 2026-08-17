@@ -1,31 +1,35 @@
 <div class="page">
   <div class="page-head">
     <div>
-      <h1>My account</h1>
-      <p class="subtitle">Your profile and password.</p>
+      <h1>{{ i18n.t('account.title') }}</h1>
+      <p class="subtitle">{{ i18n.t('account.subtitle') }}</p>
     </div>
   </div>
 
   @if (auth.user(); as user) {
     <div class="card">
-      <div class="card-head"><h2>Profile</h2></div>
+      <div class="card-head"><h2>{{ i18n.t('account.profile') }}</h2></div>
       <div class="form-grid">
         <div class="field">
-          <label>Name</label>
+          <label>{{ i18n.t('common.fullName') }}</label>
           <strong>{{ user.fullName }}</strong>
         </div>
         <div class="field">
-          <label>Email</label>
+          <label>{{ i18n.t('common.email') }}</label>
           <strong>{{ user.email }}</strong>
         </div>
         <div class="field">
-          <label>Role</label>
+          <label>{{ i18n.t('users.colRole') }}</label>
           <span><span class="badge green">{{ user.role }}</span></span>
         </div>
         <div class="field">
-          <label>Last login</label>
+          <label>{{ i18n.t('account.lastLogin') }}</label>
           <strong>
-            {{ user.lastLoginAt ? (user.lastLoginAt | date: 'dd MMM yyyy, HH:mm') : '—' }}
+            {{
+              user.lastLoginAt
+                ? (user.lastLoginAt | date: 'dd MMM yyyy, HH:mm' : undefined : i18n.locale())
+                : i18n.t('common.dash')
+            }}
           </strong>
         </div>
       </div>
@@ -33,12 +37,12 @@
   }
 
   <form class="card" [formRoot]="passwordForm">
-    <div class="card-head"><h2>Change password</h2></div>
+    <div class="card-head"><h2>{{ i18n.t('account.changePassword') }}</h2></div>
     <form-error [form]="passwordForm" />
 
     <div class="form-grid">
       <div class="field">
-        <label for="currentPassword">Current password</label>
+        <label for="currentPassword">{{ i18n.t('account.current') }}</label>
         <input
           id="currentPassword"
           type="password"
@@ -49,7 +53,7 @@
       </div>
 
       <div class="field">
-        <label for="newPassword">New password</label>
+        <label for="newPassword">{{ i18n.t('account.new') }}</label>
         <input
           id="newPassword"
           type="password"
@@ -60,7 +64,7 @@
       </div>
 
       <div class="field">
-        <label for="confirmPassword">Repeat new password</label>
+        <label for="confirmPassword">{{ i18n.t('account.repeat') }}</label>
         <input
           id="confirmPassword"
           type="password"
@@ -73,9 +77,13 @@
 
     <div class="form-actions">
       <button type="submit" class="btn" [disabled]="passwordForm().submitting()">
-        {{ passwordForm().submitting() ? 'Saving…' : 'Change password' }}
+        {{
+          passwordForm().submitting()
+            ? i18n.t('common.saving')
+            : i18n.t('account.changePassword')
+        }}
       </button>
-      <span class="muted">Changing it signs you out of all sessions.</span>
+      <span class="muted">{{ i18n.t('account.signsOut') }}</span>
     </div>
   </form>
 </div>

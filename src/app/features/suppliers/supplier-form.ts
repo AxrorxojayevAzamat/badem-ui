@@ -16,9 +16,9 @@ import {
   maxLength,
   minLength,
   required,
-  schema,
 } from '@angular/forms/signals';
 import { API_BASE, clean } from '../../core/api';
+import { I18n } from '../../core/i18n/i18n';
 import { Supplier } from '../../core/models';
 import { Suppliers } from '../../core/services/suppliers';
 import { Toast } from '../../core/toast';
@@ -43,16 +43,6 @@ const empty: SupplierModel = {
   isActive: true,
 };
 
-/** The built-in validators skip empty values, so optional fields need no guard. */
-const supplierSchema = schema<SupplierModel>((path) => {
-  required(path.name, { message: 'Supplier name is required' });
-  minLength(path.name, 2, { message: 'At least 2 characters' });
-  maxLength(path.name, 160);
-  email(path.email, { message: 'Enter a valid email address' });
-  maxLength(path.phone, 32);
-  maxLength(path.address, 255);
-});
-
 @Component({
   selector: 'app-supplier-form',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -66,6 +56,7 @@ export class SupplierForm {
   private readonly api = inject(Suppliers);
   private readonly router = inject(Router);
   private readonly toast = inject(Toast);
+  protected readonly i18n = inject(I18n);
 
   private readonly existing = httpResource<Supplier>(() =>
     this.id() ? `${API_BASE}/suppliers/${this.id()}` : undefined,
@@ -94,28 +85,49 @@ export class SupplierForm {
         : empty,
   });
 
-  /** The submit action lives on the form; `[formRoot]` runs it. */
-  protected readonly supplierForm = form(this.model, supplierSchema, {
-    submission: {
-      action: async (f) => {
-        const payload = clean(f().value());
-        try {
-          const id = this.id();
-          if (id) {
-            await this.api.update(id, payload);
-            this.toast.success(`Supplier "${payload.name}" updated`);
-          } else {
-            await this.api.create(payload);
-            this.toast.success(`Supplier "${payload.name}" created`);
+  /** The built-in validators skip empty values, so optional fields need no guard. */
+  protected readonly supplierForm = form(
+    this.model,
+    (path) => {
+      required(path.name, {
+        message: () => this.i18n.t('validation.supplierNameRequired'),
+      });
+      minLength(path.name, 2, { message: () => this.i18n.t('validation.min2') });
+      maxLength(path.name, 160);
+      email(path.email, { message: () => this.i18n.t('validation.email') });
+      maxLength(path.phone, 32);
+      maxLength(path.address, 255);
+    },
+    {
+      submission: {
+        action: async (f) => {
+          const payload = clean(f().value());
+          try {
+            const id = this.id();
+            if (id) {
+              await this.api.update(id, payload);
+              this.toast.success(
+                this.i18n.t('supplierForm.updated', { name: payload.name }),
+              );
+            } else {
+              await this.api.create(payload);
+              this.toast.success(
+                this.i18n.t('supplierForm.created', { name: payload.name }),
+              );
+            }
+            await this.router.navigate(['/suppliers']);
+            return null;
+          } catch (error) {
+            return serverError(
+              error,
+              undefined,
+              this.i18n.t('validation.serverRejected'),
+            );
           }
-          await this.router.navigate(['/suppliers']);
-          return null;
-        } catch (error) {
-          return serverError(error);
-        }
+        },
       },
     },
-  });
+  );
 
   protected cancel() {
     void this.router.navigate(['/suppliers']);

@@ -19,7 +19,13 @@ import {
 } from '@angular/forms/signals';
 import { API_BASE } from '../../core/api';
 import { Auth } from '../../core/auth/auth';
-import { Paginated, Source, SourceHistory } from '../../core/models';
+import { I18n } from '../../core/i18n/i18n';
+import {
+  Paginated,
+  Source,
+  SourceHistory,
+  SourceHistoryAction,
+} from '../../core/models';
 import { Sources } from '../../core/services/sources';
 import { Toast } from '../../core/toast';
 import { FieldErrors } from '../../shared/field-errors';
@@ -53,6 +59,7 @@ export class SourceDetail {
   private readonly api = inject(Sources);
   private readonly toast = inject(Toast);
   protected readonly auth = inject(Auth);
+  protected readonly i18n = inject(I18n);
 
   protected readonly sourceRes = httpResource<Source>(
     () => `${API_BASE}/sources/${this.id()}`,
@@ -77,8 +84,12 @@ export class SourceDetail {
   protected readonly restockForm = form(
     this.restockModel,
     (path) => {
-      required(path.quantity, { message: 'Enter an amount' });
-      min(path.quantity, 0.001, { message: 'Must be greater than zero' });
+      required(path.quantity, {
+        message: () => this.i18n.t('validation.enterAmount'),
+      });
+      min(path.quantity, 0.001, {
+        message: () => this.i18n.t('validation.greaterThanZero'),
+      });
       maxLength(path.note, 255);
     },
     {
@@ -92,7 +103,11 @@ export class SourceDetail {
               note || undefined,
             );
             this.toast.success(
-              `Added ${quantity} ${updated.unit} — now ${updated.quantity} ${updated.unit}`,
+              this.i18n.t('sourceDetail.restocked', {
+                quantity,
+                unit: updated.unit,
+                total: updated.quantity,
+              }),
             );
             this.restockModel.set({ quantity: 0, note: '' });
             // Also clear touched/dirty, otherwise the emptied field
@@ -101,7 +116,11 @@ export class SourceDetail {
             this.reload();
             return null;
           } catch (error) {
-            return serverError(error, f.quantity);
+            return serverError(
+              error,
+              f.quantity,
+              this.i18n.t('validation.serverRejected'),
+            );
           }
         },
       },
@@ -112,8 +131,12 @@ export class SourceDetail {
   protected readonly adjustForm = form(
     this.adjustModel,
     (path) => {
-      required(path.quantity, { message: 'Enter the counted stock' });
-      min(path.quantity, 0, { message: 'Stock cannot be negative' });
+      required(path.quantity, {
+        message: () => this.i18n.t('validation.enterCounted'),
+      });
+      min(path.quantity, 0, {
+        message: () => this.i18n.t('validation.stockNegative'),
+      });
       maxLength(path.note, 255);
     },
     {
@@ -127,19 +150,30 @@ export class SourceDetail {
               note || undefined,
             );
             this.toast.success(
-              `Stock corrected to ${updated.quantity} ${updated.unit}`,
+              this.i18n.t('sourceDetail.corrected', {
+                total: updated.quantity,
+                unit: updated.unit,
+              }),
             );
             this.adjustModel.set({ quantity: 0, note: '' });
             this.adjustForm().reset();
             this.reload();
             return null;
           } catch (error) {
-            return serverError(error, f.quantity);
+            return serverError(
+              error,
+              f.quantity,
+              this.i18n.t('validation.serverRejected'),
+            );
           }
         },
       },
     },
   );
+
+  protected actionLabel(action: SourceHistoryAction): string {
+    return this.i18n.t(`history.action.${action}`);
+  }
 
   private reload() {
     this.sourceRes.reload();

@@ -1,38 +1,42 @@
 <div class="page">
   <div class="page-head">
     <div>
-      <h1>Clients</h1>
-      <p class="subtitle">Every product is produced for one of these.</p>
+      <h1>{{ i18n.t('clients.title') }}</h1>
+      <p class="subtitle">{{ i18n.t('clients.subtitle') }}</p>
     </div>
     @if (auth.can('ADMIN', 'MANAGER')) {
-      <a class="btn" routerLink="/clients/new">New client</a>
+      <a class="btn" routerLink="/clients/new">{{ i18n.t('clients.new') }}</a>
     }
   </div>
 
   <div class="card">
     <div class="card-head">
       <div class="toolbar">
-        <input type="search" placeholder="Search name, company, contact…" (input)="onSearch($event)" />
+        <input
+          type="search"
+          [placeholder]="i18n.t('clients.searchPlaceholder')"
+          (input)="onSearch($event)"
+        />
       </div>
       @if (res.isLoading()) {
-        <span class="muted">Loading…</span>
+        <span class="muted">{{ i18n.t('common.loading') }}</span>
       }
     </div>
 
     @if (res.error()) {
-      <div class="alert error">Could not load clients.</div>
+      <div class="alert error">{{ i18n.t('clients.loadError') }}</div>
     } @else if (rows().length === 0) {
-      <p class="empty">No clients found.</p>
+      <p class="empty">{{ i18n.t('clients.empty') }}</p>
     } @else {
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Company</th>
-              <th>Phone</th>
-              <th>Email</th>
-              <th>Status</th>
+              <th>{{ i18n.t('common.name') }}</th>
+              <th>{{ i18n.t('common.company') }}</th>
+              <th>{{ i18n.t('common.phone') }}</th>
+              <th>{{ i18n.t('common.email') }}</th>
+              <th>{{ i18n.t('common.status') }}</th>
               <th></th>
             </tr>
           </thead>
@@ -40,21 +44,23 @@
             @for (client of rows(); track client.id) {
               <tr>
                 <td><strong>{{ client.name }}</strong></td>
-                <td class="muted">{{ client.company ?? '—' }}</td>
-                <td class="muted">{{ client.phone ?? '—' }}</td>
-                <td class="muted">{{ client.email ?? '—' }}</td>
+                <td class="muted">{{ client.company ?? i18n.t('common.dash') }}</td>
+                <td class="muted">{{ client.phone ?? i18n.t('common.dash') }}</td>
+                <td class="muted">{{ client.email ?? i18n.t('common.dash') }}</td>
                 <td>
                   <span class="badge" [class.green]="client.isActive">
-                    {{ client.isActive ? 'Active' : 'Inactive' }}
+                    {{ client.isActive ? i18n.t('common.active') : i18n.t('common.inactive') }}
                   </span>
                 </td>
                 <td class="actions">
                   @if (auth.can('ADMIN', 'MANAGER')) {
-                    <a class="btn ghost small" [routerLink]="['/clients', client.id]">Edit</a>
+                    <a class="btn ghost small" [routerLink]="['/clients', client.id]">
+                      {{ i18n.t('common.edit') }}
+                    </a>
                   }
                   @if (auth.can('ADMIN')) {
                     <button type="button" class="btn danger small" (click)="remove(client)">
-                      Delete
+                      {{ i18n.t('common.delete') }}
                     </button>
                   }
                 </td>

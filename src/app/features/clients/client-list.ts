@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { RouterLink } from '@angular/router';
 import { API_BASE, apiErrorMessage } from '../../core/api';
 import { Auth } from '../../core/auth/auth';
+import { I18n } from '../../core/i18n/i18n';
 import { Client, Paginated } from '../../core/models';
 import { Clients } from '../../core/services/clients';
 import { Toast } from '../../core/toast';
@@ -18,6 +19,7 @@ export class ClientList {
   private readonly api = inject(Clients);
   private readonly toast = inject(Toast);
   protected readonly auth = inject(Auth);
+  protected readonly i18n = inject(I18n);
 
   protected readonly page = signal(1);
   protected readonly search = signal('');
@@ -39,13 +41,17 @@ export class ClientList {
   }
 
   protected async remove(client: Client) {
-    if (!confirm(`Delete client "${client.name}"?`)) return;
+    if (!confirm(this.i18n.t('clients.confirmDelete', { name: client.name }))) {
+      return;
+    }
     try {
       await this.api.remove(client.id);
-      this.toast.success(`Client "${client.name}" deleted`);
+      this.toast.success(this.i18n.t('clients.deleted', { name: client.name }));
       this.res.reload();
     } catch (error) {
-      this.toast.error(apiErrorMessage(error, 'Could not delete client'));
+      this.toast.error(
+        apiErrorMessage(error, this.i18n.t('clients.deleteFailed')),
+      );
     }
   }
 }

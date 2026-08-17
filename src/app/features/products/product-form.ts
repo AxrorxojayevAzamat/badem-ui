@@ -21,6 +21,7 @@ import {
   validateHttp,
 } from '@angular/forms/signals';
 import { API_BASE, clean } from '../../core/api';
+import { I18n } from '../../core/i18n/i18n';
 import { Client, Paginated, Product, Source } from '../../core/models';
 import { Products } from '../../core/services/products';
 import { Toast } from '../../core/toast';
@@ -62,6 +63,7 @@ export class ProductForm {
   private readonly api = inject(Products);
   private readonly router = inject(Router);
   private readonly toast = inject(Toast);
+  protected readonly i18n = inject(I18n);
 
   private readonly existing = httpResource<Product>(() =>
     this.id() ? `${API_BASE}/products/${this.id()}` : undefined,
@@ -128,87 +130,121 @@ export class ProductForm {
     return available === null ? null : round3(available - this.totalNeeded());
   });
 
-  protected readonly productForm = form(this.model, (path) => {
-    required(path.name, { message: 'Product name is required' });
-    minLength(path.name, 2, { message: 'At least 2 characters' });
-    maxLength(path.name, 160);
-    maxLength(path.sku, 64);
-    required(path.clientId, { message: 'Choose the client this is produced for' });
-    required(path.sourceId, { message: 'Choose the source it consumes' });
-    min(path.quantity, 0.001, { message: 'Produce at least some units' });
-    min(path.sourceUsage, 0.001, { message: 'Usage must be greater than zero' });
-    min(path.price, 0, { message: 'Price cannot be negative' });
-    maxLength(path.description, 255);
+  protected readonly productForm = form(
+    this.model,
+    (path) => {
+      required(path.name, {
+        message: () => this.i18n.t('validation.productNameRequired'),
+      });
+      minLength(path.name, 2, { message: () => this.i18n.t('validation.min2') });
+      maxLength(path.name, 160);
+      maxLength(path.sku, 64);
+      required(path.clientId, {
+        message: () => this.i18n.t('validation.chooseClient'),
+      });
+      required(path.sourceId, {
+        message: () => this.i18n.t('validation.chooseSource'),
+      });
+      min(path.quantity, 0.001, {
+        message: () => this.i18n.t('validation.quantityPositive'),
+      });
+      min(path.sourceUsage, 0.001, {
+        message: () => this.i18n.t('validation.usagePositive'),
+      });
+      min(path.price, 0, {
+        message: () => this.i18n.t('validation.priceNegative'),
+      });
+      maxLength(path.description, 255);
 
-    // Cross-field rule mirroring the API: a batch cannot consume more than the
-    // source holds. `ctx.valueOf` reads sibling fields reactively, so the error
-    // appears (and clears) as soon as any of the three inputs changes.
-    validate(path.quantity, (ctx) => {
-      const quantity = ctx.value();
-      const usage = ctx.valueOf(path.sourceUsage);
-      const available = this.availableStock();
-      const source = this.selectedSource();
-      if (!source || available === null || !quantity || !usage) return null;
+      // Cross-field rule mirroring the API: a batch cannot consume more than the
+      // source holds. `ctx.valueOf` reads sibling fields reactively, so the error
+      // appears (and clears) as soon as any of the three inputs changes.
+      validate(path.quantity, (ctx) => {
+        const quantity = ctx.value();
+        const usage = ctx.valueOf(path.sourceUsage);
+        const available = this.availableStock();
+        const source = this.selectedSource();
+        if (!source || available === null || !quantity || !usage) return null;
 
-      const needed = round3(quantity * usage);
-      if (needed > available) {
-        return {
-          kind: 'insufficientStock',
-          message: `Only ${available} ${source.unit} of ${source.name} available — this batch needs ${needed} ${source.unit}`,
-        };
-      }
-      return null;
-    });
+        const needed = round3(quantity * usage);
+        if (needed > available) {
+          return {
+            kind: 'insufficientStock',
+            message: this.i18n.t('validation.insufficientStock', {
+              available,
+              needed,
+              unit: source.unit,
+              name: source.name,
+            }),
+          };
+        }
+        return null;
+      });
 
-    // Don't hammer the API on every keystroke.
-    debounce(path.sku, 400);
+      // Don't hammer the API on every keystroke.
+      debounce(path.sku, 400);
 
-    // Async uniqueness check against the products endpoint.
-    validateHttp(path.sku, {
-      request: (ctx) => {
-        const sku = ctx.value().trim();
-        return sku
-          ? { url: `${API_BASE}/products`, params: { search: sku, limit: 20 } }
-          : undefined;
-      },
-      onSuccess: (result: Paginated<Product>, ctx) => {
-        const sku = ctx.value().trim().toLowerCase();
-        const taken = result.data.some(
-          (product) =>
-            (product.sku ?? '').toLowerCase() === sku && product.id !== this.id(),
-        );
-        return taken
-          ? { kind: 'skuTaken', message: `SKU "${ctx.value()}" is already used` }
-          : null;
-      },
-      // A failed lookup must not block the form; the API enforces this anyway.
-      onError: () => null,
-    });
-  },
-  {
-    submission: {
-      action: async (f) => {
-        const value = f().value();
-        try {
-          const id = this.id();
-          if (id) {
-            await this.api.update(id, clean(value));
-            this.toast.success(`Product "${value.name}" updated`);
-          } else {
-            const created = await this.api.create(clean(value));
-            this.toast.success(
-              `Produced ${created.quantity} × "${created.name}" — ${created.totalSourceUsed} ${this.selectedSource()?.unit ?? ''} consumed`,
+      // Async uniqueness check against the products endpoint.
+      validateHttp(path.sku, {
+        request: (ctx) => {
+          const sku = ctx.value().trim();
+          return sku
+            ? { url: `${API_BASE}/products`, params: { search: sku, limit: 20 } }
+            : undefined;
+        },
+        onSuccess: (result: Paginated<Product>, ctx) => {
+          const sku = ctx.value().trim().toLowerCase();
+          const taken = result.data.some(
+            (product) =>
+              (product.sku ?? '').toLowerCase() === sku && product.id !== this.id(),
+          );
+          return taken
+            ? {
+                kind: 'skuTaken',
+                message: this.i18n.t('validation.skuTaken', { sku: ctx.value() }),
+              }
+            : null;
+        },
+        // A failed lookup must not block the form; the API enforces this anyway.
+        onError: () => null,
+      });
+    },
+    {
+      submission: {
+        action: async (f) => {
+          const value = f().value();
+          try {
+            const id = this.id();
+            if (id) {
+              await this.api.update(id, clean(value));
+              this.toast.success(
+                this.i18n.t('productForm.updated', { name: value.name }),
+              );
+            } else {
+              const created = await this.api.create(clean(value));
+              this.toast.success(
+                this.i18n.t('productForm.created', {
+                  quantity: created.quantity,
+                  name: created.name,
+                  used: created.totalSourceUsed,
+                  unit: this.selectedSource()?.unit ?? '',
+                }),
+              );
+            }
+            await this.router.navigate(['/products']);
+            return null;
+          } catch (error) {
+            // A 409 from the stock check belongs on the quantity field.
+            return serverError(
+              error,
+              f.quantity,
+              this.i18n.t('validation.serverRejected'),
             );
           }
-          await this.router.navigate(['/products']);
-          return null;
-        } catch (error) {
-          // A 409 from the stock check belongs on the quantity field.
-          return serverError(error, f.quantity);
-        }
+        },
       },
     },
-  });
+  );
 
   protected cancel() {
     void this.router.navigate(['/products']);

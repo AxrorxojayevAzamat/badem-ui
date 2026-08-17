@@ -16,9 +16,9 @@ import {
   maxLength,
   minLength,
   required,
-  schema,
 } from '@angular/forms/signals';
 import { API_BASE, clean } from '../../core/api';
+import { I18n } from '../../core/i18n/i18n';
 import { Client } from '../../core/models';
 import { Clients } from '../../core/services/clients';
 import { Toast } from '../../core/toast';
@@ -43,15 +43,6 @@ const empty: ClientModel = {
   isActive: true,
 };
 
-const clientSchema = schema<ClientModel>((path) => {
-  required(path.name, { message: 'Client name is required' });
-  minLength(path.name, 2, { message: 'At least 2 characters' });
-  maxLength(path.name, 160);
-  email(path.email, { message: 'Enter a valid email address' });
-  maxLength(path.phone, 32);
-  maxLength(path.address, 255);
-});
-
 @Component({
   selector: 'app-client-form',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,6 +55,7 @@ export class ClientForm {
   private readonly api = inject(Clients);
   private readonly router = inject(Router);
   private readonly toast = inject(Toast);
+  protected readonly i18n = inject(I18n);
 
   private readonly existing = httpResource<Client>(() =>
     this.id() ? `${API_BASE}/clients/${this.id()}` : undefined,
@@ -87,27 +79,48 @@ export class ClientForm {
         : empty,
   });
 
-  protected readonly clientForm = form(this.model, clientSchema, {
-    submission: {
-      action: async (f) => {
-        const payload = clean(f().value());
-        try {
-          const id = this.id();
-          if (id) {
-            await this.api.update(id, payload);
-            this.toast.success(`Client "${payload.name}" updated`);
-          } else {
-            await this.api.create(payload);
-            this.toast.success(`Client "${payload.name}" created`);
+  protected readonly clientForm = form(
+    this.model,
+    (path) => {
+      required(path.name, {
+        message: () => this.i18n.t('validation.clientNameRequired'),
+      });
+      minLength(path.name, 2, { message: () => this.i18n.t('validation.min2') });
+      maxLength(path.name, 160);
+      email(path.email, { message: () => this.i18n.t('validation.email') });
+      maxLength(path.phone, 32);
+      maxLength(path.address, 255);
+    },
+    {
+      submission: {
+        action: async (f) => {
+          const payload = clean(f().value());
+          try {
+            const id = this.id();
+            if (id) {
+              await this.api.update(id, payload);
+              this.toast.success(
+                this.i18n.t('clientForm.updated', { name: payload.name }),
+              );
+            } else {
+              await this.api.create(payload);
+              this.toast.success(
+                this.i18n.t('clientForm.created', { name: payload.name }),
+              );
+            }
+            await this.router.navigate(['/clients']);
+            return null;
+          } catch (error) {
+            return serverError(
+              error,
+              undefined,
+              this.i18n.t('validation.serverRejected'),
+            );
           }
-          await this.router.navigate(['/clients']);
-          return null;
-        } catch (error) {
-          return serverError(error);
-        }
+        },
       },
     },
-  });
+  );
 
   protected cancel() {
     void this.router.navigate(['/clients']);

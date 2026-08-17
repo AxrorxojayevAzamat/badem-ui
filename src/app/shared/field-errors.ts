@@ -1,5 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { FieldTree, ValidationError } from '@angular/forms/signals';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+} from '@angular/core';
+import { FieldTree } from '@angular/forms/signals';
+import { TranslationKey } from '../core/i18n/en';
+import { I18n } from '../core/i18n/i18n';
 
 /**
  * Renders the validation errors of a signal-forms field, but only once the
@@ -24,6 +32,8 @@ import { FieldTree, ValidationError } from '@angular/forms/signals';
   `,
 })
 export class FieldErrors {
+  private readonly i18n = inject(I18n);
+
   /**
    * Any field of a signal form, e.g. `form.email` or `form.quantity`.
    * `FieldTree<unknown>` is the API's own "some field" type — `FieldTree<any>`
@@ -38,29 +48,24 @@ export class FieldErrors {
     return state.touched() && state.errors().length > 0;
   });
 
-  readonly message = computed(() => describe(this.state().errors()[0]));
+  /**
+   * Validators built in this app pass an already-translated `message`. Only
+   * the framework's own errors fall back to a key lookup here.
+   */
+  readonly message = computed(() => {
+    const error = this.state().errors()[0];
+    if (!error) return '';
+    if (error.message) return error.message;
+    return this.i18n.t(BUILT_IN[error.kind] ?? 'validation.invalid');
+  });
 }
 
-/** Signal-forms built-in errors carry a `kind`; messages are optional. */
-export function describe(error: ValidationError | undefined): string {
-  if (!error) return '';
-  if (error.message) return error.message;
-  switch (error.kind) {
-    case 'required':
-      return 'This field is required';
-    case 'email':
-      return 'Enter a valid email address';
-    case 'min':
-      return 'Value is too small';
-    case 'max':
-      return 'Value is too large';
-    case 'minLength':
-      return 'Too short';
-    case 'maxLength':
-      return 'Too long';
-    case 'pattern':
-      return 'Wrong format';
-    default:
-      return 'Invalid value';
-  }
-}
+const BUILT_IN: Record<string, TranslationKey> = {
+  required: 'validation.required',
+  email: 'validation.email',
+  min: 'validation.min',
+  max: 'validation.max',
+  minLength: 'validation.minLength',
+  maxLength: 'validation.maxLength',
+  pattern: 'validation.pattern',
+};

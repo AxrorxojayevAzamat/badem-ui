@@ -2,17 +2,17 @@
   <aside class="sidebar">
     <div class="brand">
       <span class="mark">B</span>
-      <span class="name">Badem CRM</span>
+      <span class="name">{{ i18n.t('common.appName') }}</span>
     </div>
 
     <nav>
       @for (item of nav(); track item.path) {
-        <a [routerLink]="item.path" routerLinkActive="active">{{ item.label }}</a>
+        <a [routerLink]="item.path" routerLinkActive="active">{{ i18n.t(item.label) }}</a>
       }
     </nav>
 
     <div class="sidebar-foot">
-      <a routerLink="/account" routerLinkActive="active">My account</a>
+      <a routerLink="/account" routerLinkActive="active">{{ i18n.t('nav.account') }}</a>
     </div>
   </aside>
 
@@ -25,7 +25,25 @@
           <span class="badge green">{{ auth.user()?.role }}</span>
         </div>
       </div>
-      <button type="button" class="btn ghost small" (click)="logout()">Log out</button>
+
+      <div class="topbar-actions">
+        <!-- `selected` per option, not [value] on the select: with @for the
+             options render after the value binding, so [value] would not stick. -->
+        <select
+          class="lang"
+          (change)="onLanguage($event)"
+          [attr.aria-label]="i18n.t('common.language')"
+        >
+          @for (language of i18n.languages; track language.code) {
+            <option [value]="language.code" [selected]="language.code === i18n.lang()">
+              {{ language.label }}
+            </option>
+          }
+        </select>
+        <button type="button" class="btn ghost small" (click)="logout()">
+          {{ i18n.t('nav.logout') }}
+        </button>
+      </div>
     </header>
 
     <main class="content">

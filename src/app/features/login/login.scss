@@ -4,8 +4,8 @@
   place-items: center;
   padding: 1.5rem;
   background:
-    radial-gradient(circle at 15% 15%, rgb(22 120 95 / 12%), transparent 45%),
-    radial-gradient(circle at 85% 80%, rgb(22 120 95 / 8%), transparent 40%),
+    radial-gradient(circle at 15% 15%, rgb(168 73 42 / 12%), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgb(168 73 42 / 8%), transparent 40%),
     var(--bg);
 }
 
@@ -52,6 +52,34 @@
   margin: 0;
   text-align: center;
   font-size: 0.8125rem;
+}
+
+.lang-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.lang-btn {
+  font: inherit;
+  font-size: 0.8125rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.lang-btn:hover {
+  background: var(--surface-2);
+}
+
+.lang-btn.active {
+  background: var(--primary-soft);
+  border-color: transparent;
+  color: var(--primary-strong);
+  font-weight: 600;
 }
 
 code {

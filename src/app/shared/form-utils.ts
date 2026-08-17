@@ -11,11 +11,13 @@ import { apiErrorMessage } from '../core/api';
 export function serverError(
   error: unknown,
   fieldTree?: FieldTree<unknown>,
+  /** Translated text to show when the API sent no message of its own. */
+  fallback = 'The server rejected this request',
 ): ValidationError.WithOptionalFieldTree[] {
   return [
     {
       kind: 'server',
-      message: apiErrorMessage(error, 'The server rejected this request'),
+      message: apiErrorMessage(error, fallback),
       ...(fieldTree ? { fieldTree } : {}),
     },
   ];

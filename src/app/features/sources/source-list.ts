@@ -4,6 +4,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { RouterLink } from '@angular/router';
 import { API_BASE, apiErrorMessage } from '../../core/api';
 import { Auth } from '../../core/auth/auth';
+import { I18n } from '../../core/i18n/i18n';
 import { Paginated, Source, Supplier } from '../../core/models';
 import { Sources } from '../../core/services/sources';
 import { Toast } from '../../core/toast';
@@ -19,6 +20,7 @@ export class SourceList {
   private readonly api = inject(Sources);
   private readonly toast = inject(Toast);
   protected readonly auth = inject(Auth);
+  protected readonly i18n = inject(I18n);
 
   protected readonly page = signal(1);
   protected readonly search = signal('');
@@ -67,13 +69,17 @@ export class SourceList {
   }
 
   protected async remove(source: Source) {
-    if (!confirm(`Delete source "${source.name}"?`)) return;
+    if (!confirm(this.i18n.t('sources.confirmDelete', { name: source.name }))) {
+      return;
+    }
     try {
       await this.api.remove(source.id);
-      this.toast.success(`Source "${source.name}" deleted`);
+      this.toast.success(this.i18n.t('sources.deleted', { name: source.name }));
       this.res.reload();
     } catch (error) {
-      this.toast.error(apiErrorMessage(error, 'Could not delete source'));
+      this.toast.error(
+        apiErrorMessage(error, this.i18n.t('sources.deleteFailed')),
+      );
     }
   }
 }

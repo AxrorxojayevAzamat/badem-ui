@@ -19,6 +19,7 @@ import {
   required,
 } from '@angular/forms/signals';
 import { API_BASE, clean } from '../../core/api';
+import { I18n } from '../../core/i18n/i18n';
 import { Paginated, Source, Supplier } from '../../core/models';
 import { Sources } from '../../core/services/sources';
 import { Toast } from '../../core/toast';
@@ -59,6 +60,7 @@ export class SourceForm {
   private readonly api = inject(Sources);
   private readonly router = inject(Router);
   private readonly toast = inject(Toast);
+  protected readonly i18n = inject(I18n);
 
   private readonly existing = httpResource<Source>(() =>
     this.id() ? `${API_BASE}/sources/${this.id()}` : undefined,
@@ -97,45 +99,68 @@ export class SourceForm {
    * here `isEdit()` disables the opening-stock field, because an existing
    * source only changes through restock/adjust/production.
    */
-  protected readonly sourceForm = form(this.model, (path) => {
-    required(path.name, { message: 'Source name is required' });
-    minLength(path.name, 2, { message: 'At least 2 characters' });
-    maxLength(path.name, 160);
-    required(path.unit, { message: 'Unit is required' });
-    maxLength(path.unit, 16);
-    required(path.supplierId, { message: 'Choose the supplier' });
-    min(path.quantity, 0, { message: 'Stock cannot be negative' });
-    min(path.minQuantity, 0, { message: 'Minimum cannot be negative' });
-    min(path.pricePerUnit, 0, { message: 'Price cannot be negative' });
-    maxLength(path.description, 255);
+  protected readonly sourceForm = form(
+    this.model,
+    (path) => {
+      required(path.name, {
+        message: () => this.i18n.t('validation.sourceNameRequired'),
+      });
+      minLength(path.name, 2, { message: () => this.i18n.t('validation.min2') });
+      maxLength(path.name, 160);
+      required(path.unit, {
+        message: () => this.i18n.t('validation.unitRequired'),
+      });
+      maxLength(path.unit, 16);
+      required(path.supplierId, {
+        message: () => this.i18n.t('validation.chooseSupplier'),
+      });
+      min(path.quantity, 0, {
+        message: () => this.i18n.t('validation.stockNegative'),
+      });
+      min(path.minQuantity, 0, {
+        message: () => this.i18n.t('validation.minimumNegative'),
+      });
+      min(path.pricePerUnit, 0, {
+        message: () => this.i18n.t('validation.priceNegative'),
+      });
+      maxLength(path.description, 255);
 
-    disabled(path.quantity, () =>
-      this.isEdit() ? 'Stock only moves through restock, adjust or production' : false,
-    );
-  },
-  {
-    submission: {
-      action: async (f) => {
-        const value = f().value();
-        try {
-          const id = this.id();
-          if (id) {
-            // `quantity` is deliberately not part of the update payload.
-            const { quantity: _stock, ...rest } = value;
-            await this.api.update(id, clean(rest));
-            this.toast.success(`Source "${value.name}" updated`);
-          } else {
-            await this.api.create(clean(value));
-            this.toast.success(`Source "${value.name}" created`);
+      disabled(path.quantity, () =>
+        this.isEdit() ? this.i18n.t('sourceForm.stockLocked') : false,
+      );
+    },
+    {
+      submission: {
+        action: async (f) => {
+          const value = f().value();
+          try {
+            const id = this.id();
+            if (id) {
+              // `quantity` is deliberately not part of the update payload.
+              const { quantity: _stock, ...rest } = value;
+              await this.api.update(id, clean(rest));
+              this.toast.success(
+                this.i18n.t('sourceForm.updated', { name: value.name }),
+              );
+            } else {
+              await this.api.create(clean(value));
+              this.toast.success(
+                this.i18n.t('sourceForm.created', { name: value.name }),
+              );
+            }
+            await this.router.navigate(['/sources']);
+            return null;
+          } catch (error) {
+            return serverError(
+              error,
+              undefined,
+              this.i18n.t('validation.serverRejected'),
+            );
           }
-          await this.router.navigate(['/sources']);
-          return null;
-        } catch (error) {
-          return serverError(error);
-        }
+        },
       },
     },
-  });
+  );
 
   protected readonly quantityDisabledReason = computed(
     () => this.sourceForm.quantity().disabledReasons()[0]?.message ?? null,

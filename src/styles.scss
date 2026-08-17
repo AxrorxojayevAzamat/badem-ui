@@ -1,21 +1,30 @@
 /* Badem CRM — global design tokens and shared UI primitives. */
 
+/*
+ * Palette taken from the Badem logo: terracotta almonds and wordmark on cream.
+ * The brand colour drives buttons, links and navigation. Status colours keep
+ * their own hues — in a stock app "in stock" must not look like "low stock",
+ * so green/red/gold stay distinct from the warm brand tone.
+ */
 :root {
-  --bg: #f4f6fb;
+  --bg: #faf6ea; /* cream, a shade lighter than the logo background */
   --surface: #ffffff;
-  --surface-2: #f8fafc;
-  --border: #e2e8f0;
-  --text: #0f172a;
-  --text-muted: #64748b;
-  --primary: #16785f;
-  --primary-strong: #115c48;
-  --primary-soft: #e3f5ee;
-  --danger: #dc2626;
-  --danger-soft: #fee2e2;
-  --warning: #b45309;
-  --warning-soft: #fef3c7;
+  --surface-2: #f9f4e9;
+  --border: #e9dfc9;
+  --text: #2b211c;
+  --text-muted: #7b6a5c;
+  --primary: #a8492a; /* terracotta from the wordmark */
+  --primary-strong: #8a3a20;
+  --primary-soft: #f6e6da;
+  /* Dark enough to clear 4.5:1 as badge text on their own soft backgrounds. */
+  --success: #256b43;
+  --success-soft: #e3f1e8;
+  --danger: #b3231f;
+  --danger-soft: #fbe3e3;
+  --warning: #7d5608;
+  --warning-soft: #fbeecd;
   --radius: 10px;
-  --shadow: 0 1px 2px rgb(15 23 42 / 6%), 0 8px 24px rgb(15 23 42 / 6%);
+  --shadow: 0 1px 2px rgb(74 47 30 / 8%), 0 8px 24px rgb(74 47 30 / 8%);
 }
 
 * {
@@ -254,7 +263,7 @@ textarea:disabled {
 }
 
 .btn.danger:hover:not(:disabled) {
-  background: #b91c1c;
+  background: #961b18;
 }
 
 .btn.small {
@@ -320,9 +329,11 @@ td.actions {
   border: 1px solid var(--border);
 }
 
+/* "green" is the positive-state badge (active, in stock) — kept green on
+   purpose so it never reads as the brand accent or as a warning. */
 .badge.green {
-  background: var(--primary-soft);
-  color: var(--primary-strong);
+  background: var(--success-soft);
+  color: var(--success);
   border-color: transparent;
 }
 
@@ -346,7 +357,7 @@ td.actions {
 
 .alert.error {
   background: var(--danger-soft);
-  color: #991b1b;
+  color: #8f2020;
 }
 
 .alert.info {

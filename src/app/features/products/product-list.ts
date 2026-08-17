@@ -4,6 +4,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { RouterLink } from '@angular/router';
 import { API_BASE, apiErrorMessage } from '../../core/api';
 import { Auth } from '../../core/auth/auth';
+import { I18n } from '../../core/i18n/i18n';
 import { Client, Paginated, Product, Source } from '../../core/models';
 import { Products } from '../../core/services/products';
 import { Toast } from '../../core/toast';
@@ -19,6 +20,7 @@ export class ProductList {
   private readonly api = inject(Products);
   private readonly toast = inject(Toast);
   protected readonly auth = inject(Auth);
+  protected readonly i18n = inject(I18n);
 
   protected readonly page = signal(1);
   protected readonly search = signal('');
@@ -67,19 +69,24 @@ export class ProductList {
 
   protected async remove(product: Product) {
     const used = `${product.totalSourceUsed} ${product.source?.unit ?? ''}`.trim();
+    const source = product.source?.name ?? '';
     if (
       !confirm(
-        `Delete "${product.name}"? The ${used} it consumed goes back to ${product.source?.name ?? 'the source'}.`,
+        this.i18n.t('products.confirmDelete', { name: product.name, used, source }),
       )
     ) {
       return;
     }
     try {
       await this.api.remove(product.id);
-      this.toast.success(`"${product.name}" deleted — ${used} returned to stock`);
+      this.toast.success(
+        this.i18n.t('products.deleted', { name: product.name, used }),
+      );
       this.res.reload();
     } catch (error) {
-      this.toast.error(apiErrorMessage(error, 'Could not delete product'));
+      this.toast.error(
+        apiErrorMessage(error, this.i18n.t('products.deleteFailed')),
+      );
     }
   }
 }

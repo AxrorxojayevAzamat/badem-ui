@@ -99,6 +99,34 @@ no `(submit)` handler and no `preventDefault()`.
 - **Built-in validators skip empty values**, so an optional email field needs `email(path.email)` and nothing else — no `required`, no conditional wrapper.
 - **`reset()` clears touched/dirty but not the data.** After a successful save on a page that stays put, set the model *and* call `form().reset()`, or the emptied field immediately shows its "required" error.
 
+## Localization
+
+Russian, Uzbek (Latin) and English, switched **at runtime** from the topbar — one
+build, no reload. Russian is what a new user sees; the choice is stored in
+`localStorage` and also sets `<html lang>`.
+
+```
+src/app/core/i18n/
+  en.ts     source dictionary + the TranslationKey type
+  ru.ts     typed Record<TranslationKey, string>
+  uz.ts     typed Record<TranslationKey, string>
+  i18n.ts   the service: lang signal, locale, t()
+```
+
+- **A missing translation is a build error.** `ru` and `uz` are typed against the English dictionary, so adding a key to `en.ts` breaks the build until both are filled in. English is also the runtime fallback.
+- **Use it as a function, not a pipe:** `{{ i18n.t('nav.products') }}`. The `lang()` signal is read while the view renders, so changing language re-renders everything that uses it — a pure pipe would cache and go stale.
+- **Validation messages are functions**, not strings: `required(path.name, { message: () => this.i18n.t('validation.nameRequired') })`. Signal forms re-evaluates them, so errors already on screen change language too.
+- **Interpolation:** `t('key', { name, count })` fills `{name}` placeholders.
+- **Plurals** use `Intl.PluralRules`, which Russian needs — `_one` / `_few` / `_many` / `_other` suffixes are picked automatically (1 запись, 3 записи, 16 записей).
+- **Dates and numbers** follow the language: locale data for `ru` and `uz` is registered at startup and `i18n.locale()` is passed to the `date` and `number` pipes (17 авг. 2026 vs 17 Aug 2026; `1 000` vs `1,000`).
+
+Adding a language: add its dictionary file, register its locale data in
+`i18n.ts`, and add an entry to `LANGUAGES`.
+
+Note that error text coming *from the API* (e.g. "Not enough stock of …") is
+still English — the backend would need to return error codes for the client to
+translate those. Everything the client itself produces is localized.
+
 ## Structure
 
 ```

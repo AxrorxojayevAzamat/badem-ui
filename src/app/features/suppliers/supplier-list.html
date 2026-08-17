@@ -1,11 +1,11 @@
 <div class="page">
   <div class="page-head">
     <div>
-      <h1>Suppliers</h1>
-      <p class="subtitle">Where every raw material is bought from.</p>
+      <h1>{{ i18n.t('suppliers.title') }}</h1>
+      <p class="subtitle">{{ i18n.t('suppliers.subtitle') }}</p>
     </div>
     @if (auth.can('ADMIN', 'MANAGER')) {
-      <a class="btn" routerLink="/suppliers/new">New supplier</a>
+      <a class="btn" routerLink="/suppliers/new">{{ i18n.t('suppliers.new') }}</a>
     }
   </div>
 
@@ -14,29 +14,29 @@
       <div class="toolbar">
         <input
           type="search"
-          placeholder="Search name, phone or email…"
+          [placeholder]="i18n.t('suppliers.searchPlaceholder')"
           (input)="onSearch($event)"
         />
       </div>
       @if (res.isLoading()) {
-        <span class="muted">Loading…</span>
+        <span class="muted">{{ i18n.t('common.loading') }}</span>
       }
     </div>
 
     @if (res.error()) {
-      <div class="alert error">Could not load suppliers.</div>
+      <div class="alert error">{{ i18n.t('suppliers.loadError') }}</div>
     } @else if (rows().length === 0) {
-      <p class="empty">No suppliers found.</p>
+      <p class="empty">{{ i18n.t('suppliers.empty') }}</p>
     } @else {
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Email</th>
-              <th>Tax number</th>
-              <th>Status</th>
+              <th>{{ i18n.t('common.name') }}</th>
+              <th>{{ i18n.t('common.phone') }}</th>
+              <th>{{ i18n.t('common.email') }}</th>
+              <th>{{ i18n.t('suppliers.taxNumber') }}</th>
+              <th>{{ i18n.t('common.status') }}</th>
               <th></th>
             </tr>
           </thead>
@@ -44,23 +44,23 @@
             @for (supplier of rows(); track supplier.id) {
               <tr>
                 <td><strong>{{ supplier.name }}</strong></td>
-                <td class="muted">{{ supplier.phone ?? '—' }}</td>
-                <td class="muted">{{ supplier.email ?? '—' }}</td>
-                <td class="muted">{{ supplier.taxNumber ?? '—' }}</td>
+                <td class="muted">{{ supplier.phone ?? i18n.t('common.dash') }}</td>
+                <td class="muted">{{ supplier.email ?? i18n.t('common.dash') }}</td>
+                <td class="muted">{{ supplier.taxNumber ?? i18n.t('common.dash') }}</td>
                 <td>
                   <span class="badge" [class.green]="supplier.isActive">
-                    {{ supplier.isActive ? 'Active' : 'Inactive' }}
+                    {{ supplier.isActive ? i18n.t('common.active') : i18n.t('common.inactive') }}
                   </span>
                 </td>
                 <td class="actions">
                   @if (auth.can('ADMIN', 'MANAGER')) {
                     <a class="btn ghost small" [routerLink]="['/suppliers', supplier.id]">
-                      Edit
+                      {{ i18n.t('common.edit') }}
                     </a>
                   }
                   @if (auth.can('ADMIN')) {
                     <button type="button" class="btn danger small" (click)="remove(supplier)">
-                      Delete
+                      {{ i18n.t('common.delete') }}
                     </button>
                   }
                 </td>

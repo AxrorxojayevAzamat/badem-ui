@@ -16,9 +16,9 @@ import {
   min,
   minLength,
   required,
-  schema,
 } from '@angular/forms/signals';
 import { API_BASE, clean } from '../../core/api';
+import { I18n } from '../../core/i18n/i18n';
 import { Employee, Paginated, User } from '../../core/models';
 import { Employees } from '../../core/services/employees';
 import { Toast } from '../../core/toast';
@@ -47,17 +47,6 @@ const empty: EmployeeModel = {
   isActive: true,
 };
 
-const employeeSchema = schema<EmployeeModel>((path) => {
-  required(path.fullName, { message: 'Full name is required' });
-  minLength(path.fullName, 2, { message: 'At least 2 characters' });
-  maxLength(path.fullName, 120);
-  required(path.position, { message: 'Position is required' });
-  maxLength(path.position, 120);
-  maxLength(path.phone, 32);
-  maxLength(path.address, 255);
-  min(path.salary, 0, { message: 'Salary cannot be negative' });
-});
-
 @Component({
   selector: 'app-employee-form',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,6 +59,7 @@ export class EmployeeForm {
   private readonly api = inject(Employees);
   private readonly router = inject(Router);
   private readonly toast = inject(Toast);
+  protected readonly i18n = inject(I18n);
 
   private readonly existing = httpResource<Employee>(() =>
     this.id() ? `${API_BASE}/employees/${this.id()}` : undefined,
@@ -101,28 +91,57 @@ export class EmployeeForm {
         : empty,
   });
 
-  protected readonly employeeForm = form(this.model, employeeSchema, {
-    submission: {
-      action: async (f) => {
-        const payload = clean(f().value());
-        try {
-          const id = this.id();
-          if (id) {
-            await this.api.update(id, payload);
-            this.toast.success(`Employee "${payload.fullName}" updated`);
-          } else {
-            await this.api.create(payload);
-            this.toast.success(`Employee "${payload.fullName}" created`);
+  protected readonly employeeForm = form(
+    this.model,
+    (path) => {
+      required(path.fullName, {
+        message: () => this.i18n.t('validation.fullNameRequired'),
+      });
+      minLength(path.fullName, 2, {
+        message: () => this.i18n.t('validation.min2'),
+      });
+      maxLength(path.fullName, 120);
+      required(path.position, {
+        message: () => this.i18n.t('validation.positionRequired'),
+      });
+      maxLength(path.position, 120);
+      maxLength(path.phone, 32);
+      maxLength(path.address, 255);
+      min(path.salary, 0, {
+        message: () => this.i18n.t('validation.salaryNegative'),
+      });
+    },
+    {
+      submission: {
+        action: async (f) => {
+          const payload = clean(f().value());
+          try {
+            const id = this.id();
+            if (id) {
+              await this.api.update(id, payload);
+              this.toast.success(
+                this.i18n.t('employeeForm.updated', { name: payload.fullName }),
+              );
+            } else {
+              await this.api.create(payload);
+              this.toast.success(
+                this.i18n.t('employeeForm.created', { name: payload.fullName }),
+              );
+            }
+            await this.router.navigate(['/employees']);
+            return null;
+          } catch (error) {
+            // "user already linked to another employee" belongs on that field.
+            return serverError(
+              error,
+              f.userId,
+              this.i18n.t('validation.serverRejected'),
+            );
           }
-          await this.router.navigate(['/employees']);
-          return null;
-        } catch (error) {
-          // "user already linked to another employee" belongs on that field.
-          return serverError(error, f.userId);
-        }
+        },
       },
     },
-  });
+  );
 
   protected cancel() {
     void this.router.navigate(['/employees']);

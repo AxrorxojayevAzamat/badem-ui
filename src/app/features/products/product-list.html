@@ -1,50 +1,54 @@
 <div class="page">
   <div class="page-head">
     <div>
-      <h1>Products</h1>
-      <p class="subtitle">Produced batches and the stock each one consumed.</p>
+      <h1>{{ i18n.t('products.title') }}</h1>
+      <p class="subtitle">{{ i18n.t('products.subtitle') }}</p>
     </div>
-    <a class="btn" routerLink="/products/new">Record production</a>
+    <a class="btn" routerLink="/products/new">{{ i18n.t('dashboard.recordProduction') }}</a>
   </div>
 
   <div class="card">
     <div class="card-head">
       <div class="toolbar">
-        <input type="search" placeholder="Search name or SKU…" (input)="onSearch($event)" />
+        <input
+          type="search"
+          [placeholder]="i18n.t('products.searchPlaceholder')"
+          (input)="onSearch($event)"
+        />
         <select (change)="onClient($event)">
-          <option value="">All clients</option>
+          <option value="">{{ i18n.t('products.allClients') }}</option>
           @for (client of clients(); track client.id) {
             <option [value]="client.id">{{ client.name }}</option>
           }
         </select>
         <select (change)="onSource($event)">
-          <option value="">All sources</option>
+          <option value="">{{ i18n.t('products.allSources') }}</option>
           @for (source of sources(); track source.id) {
             <option [value]="source.id">{{ source.name }}</option>
           }
         </select>
       </div>
       @if (res.isLoading()) {
-        <span class="muted">Loading…</span>
+        <span class="muted">{{ i18n.t('common.loading') }}</span>
       }
     </div>
 
     @if (res.error()) {
-      <div class="alert error">Could not load products.</div>
+      <div class="alert error">{{ i18n.t('products.loadError') }}</div>
     } @else if (rows().length === 0) {
-      <p class="empty">No products yet.</p>
+      <p class="empty">{{ i18n.t('products.empty') }}</p>
     } @else {
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Product</th>
-              <th>SKU</th>
-              <th>Client</th>
-              <th>Source</th>
-              <th class="right">Units</th>
-              <th class="right">Stock used</th>
-              <th class="right">Price</th>
+              <th>{{ i18n.t('products.colProduct') }}</th>
+              <th>{{ i18n.t('products.colSku') }}</th>
+              <th>{{ i18n.t('products.colClient') }}</th>
+              <th>{{ i18n.t('products.colSource') }}</th>
+              <th class="right">{{ i18n.t('products.colUnits') }}</th>
+              <th class="right">{{ i18n.t('products.colStockUsed') }}</th>
+              <th class="right">{{ i18n.t('products.colPrice') }}</th>
               <th></th>
             </tr>
           </thead>
@@ -52,23 +56,26 @@
             @for (product of rows(); track product.id) {
               <tr>
                 <td><strong>{{ product.name }}</strong></td>
-                <td class="muted">{{ product.sku ?? '—' }}</td>
-                <td class="muted">{{ product.client?.name ?? '—' }}</td>
+                <td class="muted">{{ product.sku ?? i18n.t('common.dash') }}</td>
+                <td class="muted">{{ product.client?.name ?? i18n.t('common.dash') }}</td>
                 <td class="muted">
                   <a [routerLink]="['/sources', product.sourceId]">{{ product.source?.name }}</a>
                 </td>
-                <td class="right">{{ product.quantity | number: '1.0-3' }}</td>
+                <td class="right">{{ product.quantity | number: '1.0-3' : i18n.locale() }}</td>
                 <td class="right">
                   <span class="badge red">
-                    −{{ product.totalSourceUsed | number: '1.0-3' }} {{ product.source?.unit }}
+                    −{{ product.totalSourceUsed | number: '1.0-3' : i18n.locale() }}
+                    {{ product.source?.unit }}
                   </span>
                 </td>
-                <td class="right muted">{{ product.price | number: '1.0-2' }}</td>
+                <td class="right muted">{{ product.price | number: '1.0-2' : i18n.locale() }}</td>
                 <td class="actions">
-                  <a class="btn ghost small" [routerLink]="['/products', product.id]">Edit</a>
+                  <a class="btn ghost small" [routerLink]="['/products', product.id]">
+                    {{ i18n.t('common.edit') }}
+                  </a>
                   @if (auth.can('ADMIN', 'MANAGER')) {
                     <button type="button" class="btn danger small" (click)="remove(product)">
-                      Delete
+                      {{ i18n.t('common.delete') }}
                     </button>
                   }
                 </td>

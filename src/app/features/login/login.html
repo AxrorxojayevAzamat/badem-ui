@@ -2,8 +2,8 @@
   <form class="card login-card" [formRoot]="loginForm">
     <div class="head">
       <span class="mark">B</span>
-      <h1>Badem CRM</h1>
-      <p class="muted">Sign in to manage stock, products and clients.</p>
+      <h1>{{ i18n.t('common.appName') }}</h1>
+      <p class="muted">{{ i18n.t('auth.subtitle') }}</p>
     </div>
 
     @if (serverError(); as message) {
@@ -11,7 +11,7 @@
     }
 
     <div class="field">
-      <label for="email">Email</label>
+      <label for="email">{{ i18n.t('common.email') }}</label>
       <input
         id="email"
         type="email"
@@ -23,7 +23,7 @@
     </div>
 
     <div class="field">
-      <label for="password">Password</label>
+      <label for="password">{{ i18n.t('auth.password') }}</label>
       <input
         id="password"
         type="password"
@@ -34,11 +34,24 @@
     </div>
 
     <button type="submit" class="btn" [disabled]="loginForm().submitting()">
-      {{ loginForm().submitting() ? 'Signing in…' : 'Sign in' }}
+      {{ loginForm().submitting() ? i18n.t('auth.signingIn') : i18n.t('auth.signIn') }}
     </button>
 
+    <div class="lang-row">
+      @for (language of i18n.languages; track language.code) {
+        <button
+          type="button"
+          class="lang-btn"
+          [class.active]="i18n.lang() === language.code"
+          (click)="i18n.setLang(language.code)"
+        >
+          {{ language.label }}
+        </button>
+      }
+    </div>
+
     <p class="hint muted">
-      Seeded account: <code>admin@badem.local</code> / <code>Admin123!</code>
+      {{ i18n.t('auth.seeded') }} <code>admin&#64;badem.local</code> / <code>Admin123!</code>
     </p>
   </form>
 </div>

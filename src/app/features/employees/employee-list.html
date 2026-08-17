@@ -1,37 +1,41 @@
 <div class="page">
   <div class="page-head">
     <div>
-      <h1>Employees</h1>
-      <p class="subtitle">Staff records, optionally linked to a login account.</p>
+      <h1>{{ i18n.t('employees.title') }}</h1>
+      <p class="subtitle">{{ i18n.t('employees.subtitle') }}</p>
     </div>
-    <a class="btn" routerLink="/employees/new">New employee</a>
+    <a class="btn" routerLink="/employees/new">{{ i18n.t('employees.new') }}</a>
   </div>
 
   <div class="card">
     <div class="card-head">
       <div class="toolbar">
-        <input type="search" placeholder="Search name, position, phone…" (input)="onSearch($event)" />
+        <input
+          type="search"
+          [placeholder]="i18n.t('employees.searchPlaceholder')"
+          (input)="onSearch($event)"
+        />
       </div>
       @if (res.isLoading()) {
-        <span class="muted">Loading…</span>
+        <span class="muted">{{ i18n.t('common.loading') }}</span>
       }
     </div>
 
     @if (res.error()) {
-      <div class="alert error">Could not load employees.</div>
+      <div class="alert error">{{ i18n.t('employees.loadError') }}</div>
     } @else if (rows().length === 0) {
-      <p class="empty">No employees found.</p>
+      <p class="empty">{{ i18n.t('employees.empty') }}</p>
     } @else {
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Position</th>
-              <th>Phone</th>
-              <th class="right">Salary</th>
-              <th>Login</th>
-              <th>Status</th>
+              <th>{{ i18n.t('common.fullName') }}</th>
+              <th>{{ i18n.t('employees.colPosition') }}</th>
+              <th>{{ i18n.t('common.phone') }}</th>
+              <th class="right">{{ i18n.t('employees.colSalary') }}</th>
+              <th>{{ i18n.t('employees.colLogin') }}</th>
+              <th>{{ i18n.t('common.status') }}</th>
               <th></th>
             </tr>
           </thead>
@@ -40,26 +44,28 @@
               <tr>
                 <td><strong>{{ employee.fullName }}</strong></td>
                 <td class="muted">{{ employee.position }}</td>
-                <td class="muted">{{ employee.phone ?? '—' }}</td>
-                <td class="right">{{ employee.salary | number: '1.0-2' }}</td>
+                <td class="muted">{{ employee.phone ?? i18n.t('common.dash') }}</td>
+                <td class="right">{{ employee.salary | number: '1.0-2' : i18n.locale() }}</td>
                 <td class="muted">
                   @if (employee.user) {
                     {{ employee.user.email }}
                     <span class="badge">{{ employee.user.role }}</span>
                   } @else {
-                    —
+                    {{ i18n.t('common.dash') }}
                   }
                 </td>
                 <td>
                   <span class="badge" [class.green]="employee.isActive">
-                    {{ employee.isActive ? 'Active' : 'Inactive' }}
+                    {{ employee.isActive ? i18n.t('common.active') : i18n.t('common.inactive') }}
                   </span>
                 </td>
                 <td class="actions">
-                  <a class="btn ghost small" [routerLink]="['/employees', employee.id]">Edit</a>
+                  <a class="btn ghost small" [routerLink]="['/employees', employee.id]">
+                    {{ i18n.t('common.edit') }}
+                  </a>
                   @if (auth.can('ADMIN')) {
                     <button type="button" class="btn danger small" (click)="remove(employee)">
-                      Delete
+                      {{ i18n.t('common.delete') }}
                     </button>
                   }
                 </td>

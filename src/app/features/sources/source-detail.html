@@ -1,86 +1,106 @@
 @if (sourceRes.isLoading() && !source()) {
-  <div class="card"><p class="empty">Loading source…</p></div>
+  <div class="card"><p class="empty">{{ i18n.t('sourceForm.loading') }}</p></div>
 } @else if (source(); as src) {
   <div class="page">
     <div class="page-head">
       <div>
         <h1>{{ src.name }}</h1>
         <p class="subtitle">
-          Supplied by
+          {{ i18n.t('sourceDetail.suppliedBy') }}
           <a [routerLink]="['/suppliers', src.supplierId]">{{ src.supplier?.name }}</a>
         </p>
       </div>
-      <a class="btn ghost" routerLink="/sources">Back to sources</a>
+      <a class="btn ghost" routerLink="/sources">{{ i18n.t('sourceDetail.back') }}</a>
     </div>
 
     <div class="grid cols-4">
       <div class="card stat" [class.warn]="isLow()">
-        <span class="label">In stock</span>
-        <strong>{{ src.quantity | number: '1.0-3' }} {{ src.unit }}</strong>
+        <span class="label">{{ i18n.t('sourceDetail.inStock') }}</span>
+        <strong>{{ src.quantity | number: '1.0-3' : i18n.locale() }} {{ src.unit }}</strong>
         @if (isLow()) {
-          <span class="badge red">At or below minimum</span>
+          <span class="badge red">{{ i18n.t('sourceDetail.belowMinimum') }}</span>
         }
       </div>
       <div class="card stat">
-        <span class="label">Minimum</span>
-        <strong>{{ src.minQuantity | number: '1.0-3' }} {{ src.unit }}</strong>
+        <span class="label">{{ i18n.t('sourceDetail.minimum') }}</span>
+        <strong>{{ src.minQuantity | number: '1.0-3' : i18n.locale() }} {{ src.unit }}</strong>
       </div>
       <div class="card stat">
-        <span class="label">Price / unit</span>
-        <strong>{{ src.pricePerUnit | number: '1.0-2' }}</strong>
+        <span class="label">{{ i18n.t('sourceDetail.pricePerUnit') }}</span>
+        <strong>{{ src.pricePerUnit | number: '1.0-2' : i18n.locale() }}</strong>
       </div>
       <div class="card stat">
-        <span class="label">Stock value</span>
-        <strong>{{ src.quantity * src.pricePerUnit | number: '1.0-0' }}</strong>
+        <span class="label">{{ i18n.t('sourceDetail.stockValue') }}</span>
+        <strong>{{ src.quantity * src.pricePerUnit | number: '1.0-0' : i18n.locale() }}</strong>
       </div>
     </div>
 
     @if (auth.can('ADMIN', 'MANAGER')) {
       <div class="grid cols-2">
         <form class="card" [formRoot]="restockForm">
-          <div class="card-head"><h2>Restock</h2></div>
-          <p class="muted">Adds stock and writes a RESTOCK entry.</p>
+          <div class="card-head"><h2>{{ i18n.t('sourceDetail.restock') }}</h2></div>
+          <p class="muted">{{ i18n.t('sourceDetail.restockHint') }}</p>
           <form-error [form]="restockForm" />
 
           <div class="field">
-            <label for="restockQty">Amount to add ({{ src.unit }})</label>
+            <label for="restockQty">
+              {{ i18n.t('sourceDetail.amountToAdd', { unit: src.unit }) }}
+            </label>
             <input id="restockQty" type="number" step="0.001" [formField]="restockForm.quantity" />
             <field-errors [field]="restockForm.quantity" />
           </div>
 
           <div class="field">
-            <label for="restockNote">Note</label>
-            <input id="restockNote" [formField]="restockForm.note" placeholder="Invoice #4471" />
+            <label for="restockNote">{{ i18n.t('common.note') }}</label>
+            <input
+              id="restockNote"
+              [formField]="restockForm.note"
+              [placeholder]="i18n.t('sourceDetail.notePlaceholder')"
+            />
             <field-errors [field]="restockForm.note" />
           </div>
 
           <div class="form-actions">
             <button type="submit" class="btn" [disabled]="restockForm().submitting()">
-              {{ restockForm().submitting() ? 'Saving…' : 'Add stock' }}
+              {{
+                restockForm().submitting()
+                  ? i18n.t('common.saving')
+                  : i18n.t('sourceDetail.addStock')
+              }}
             </button>
           </div>
         </form>
 
         <form class="card" [formRoot]="adjustForm">
-          <div class="card-head"><h2>Correct stock</h2></div>
-          <p class="muted">Sets an absolute value after a physical count.</p>
+          <div class="card-head"><h2>{{ i18n.t('sourceDetail.correct') }}</h2></div>
+          <p class="muted">{{ i18n.t('sourceDetail.correctHint') }}</p>
           <form-error [form]="adjustForm" />
 
           <div class="field">
-            <label for="adjustQty">Counted stock ({{ src.unit }})</label>
+            <label for="adjustQty">
+              {{ i18n.t('sourceDetail.countedStock', { unit: src.unit }) }}
+            </label>
             <input id="adjustQty" type="number" step="0.001" [formField]="adjustForm.quantity" />
             <field-errors [field]="adjustForm.quantity" />
           </div>
 
           <div class="field">
-            <label for="adjustNote">Note</label>
-            <input id="adjustNote" [formField]="adjustForm.note" placeholder="Monthly inventory" />
+            <label for="adjustNote">{{ i18n.t('common.note') }}</label>
+            <input
+              id="adjustNote"
+              [formField]="adjustForm.note"
+              [placeholder]="i18n.t('sourceDetail.countPlaceholder')"
+            />
             <field-errors [field]="adjustForm.note" />
           </div>
 
           <div class="form-actions">
             <button type="submit" class="btn ghost" [disabled]="adjustForm().submitting()">
-              {{ adjustForm().submitting() ? 'Saving…' : 'Correct stock' }}
+              {{
+                adjustForm().submitting()
+                  ? i18n.t('common.saving')
+                  : i18n.t('sourceDetail.correct')
+              }}
             </button>
           </div>
         </form>
@@ -89,42 +109,52 @@
 
     <div class="card">
       <div class="card-head">
-        <h2>Stock history</h2>
+        <h2>{{ i18n.t('sourceDetail.historyTitle') }}</h2>
         @if (historyRes.isLoading()) {
-          <span class="muted">Loading…</span>
+          <span class="muted">{{ i18n.t('common.loading') }}</span>
         }
       </div>
 
       @if (history().length === 0) {
-        <p class="empty">No movements recorded for this source yet.</p>
+        <p class="empty">{{ i18n.t('sourceDetail.noHistory') }}</p>
       } @else {
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>When</th>
-                <th>Action</th>
-                <th class="right">Before</th>
-                <th class="right">Change</th>
-                <th class="right">After</th>
-                <th>Reason</th>
-                <th>By</th>
+                <th>{{ i18n.t('history.colWhen') }}</th>
+                <th>{{ i18n.t('history.colAction') }}</th>
+                <th class="right">{{ i18n.t('history.colBefore') }}</th>
+                <th class="right">{{ i18n.t('history.colChange') }}</th>
+                <th class="right">{{ i18n.t('history.colAfter') }}</th>
+                <th>{{ i18n.t('history.colReason') }}</th>
+                <th>{{ i18n.t('history.colBy') }}</th>
               </tr>
             </thead>
             <tbody>
               @for (entry of history(); track entry.id) {
                 <tr>
-                  <td class="muted">{{ entry.createdAt | date: 'dd MMM, HH:mm' }}</td>
-                  <td><span class="badge">{{ entry.action }}</span></td>
-                  <td class="right muted">{{ entry.quantityBefore | number: '1.0-3' }}</td>
+                  <td class="muted">
+                    {{ entry.createdAt | date: 'dd MMM, HH:mm' : undefined : i18n.locale() }}
+                  </td>
+                  <td><span class="badge">{{ actionLabel(entry.action) }}</span></td>
+                  <td class="right muted">
+                    {{ entry.quantityBefore | number: '1.0-3' : i18n.locale() }}
+                  </td>
                   <td class="right">
-                    <strong [class.up]="entry.quantityChange > 0" [class.down]="entry.quantityChange < 0">
-                      {{ entry.quantityChange > 0 ? '+' : '' }}{{ entry.quantityChange | number: '1.0-3' }}
+                    <strong
+                      [class.up]="entry.quantityChange > 0"
+                      [class.down]="entry.quantityChange < 0"
+                    >
+                      {{ entry.quantityChange > 0 ? '+' : ''
+                      }}{{ entry.quantityChange | number: '1.0-3' : i18n.locale() }}
                     </strong>
                   </td>
-                  <td class="right">{{ entry.quantityAfter | number: '1.0-3' }}</td>
-                  <td class="muted">{{ entry.note ?? '—' }}</td>
-                  <td class="muted">{{ entry.user?.fullName ?? '—' }}</td>
+                  <td class="right">
+                    {{ entry.quantityAfter | number: '1.0-3' : i18n.locale() }}
+                  </td>
+                  <td class="muted">{{ entry.note ?? i18n.t('common.dash') }}</td>
+                  <td class="muted">{{ entry.user?.fullName ?? i18n.t('common.dash') }}</td>
                 </tr>
               }
             </tbody>
@@ -136,5 +166,5 @@
     </div>
   </div>
 } @else {
-  <div class="card"><p class="empty">Source not found.</p></div>
+  <div class="card"><p class="empty">{{ i18n.t('sourceDetail.notFound') }}</p></div>
 }
